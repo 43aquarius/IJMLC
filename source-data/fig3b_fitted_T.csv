@@ -1,0 +1,5 @@
+condition,T_mean,T_sd
+single,2.4563,0.0726
+deepens,1.2450,0.0110
+snapshot,1.5776,0.0351
+swa,1.7938,0.0527

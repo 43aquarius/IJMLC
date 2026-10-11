@@ -5,6 +5,7 @@ Everything is deterministic given (replicate_seed, condition, member).
 All metrics are computed in float64 for numerical stability.
 """
 import math
+import os
 import time
 from dataclasses import dataclass, field
 
@@ -15,9 +16,61 @@ import torch.nn.functional as F
 
 from sklearn.metrics import roc_auc_score
 
-torch.set_num_threads(2)
+torch.set_num_threads(int(os.environ.get("TORCH_THREADS", "2")))
 
 DATA_PATH = "/home/z/my-project/results/data/datasets.npz"
+DATA_PATH_V2 = "/home/z/my-project/results/data/datasets_v2.npz"
+SPLIT_SEED = 20260922  # fixed split seed, documented (same as v1)
+
+
+def load_splits_for(id_name: str):
+    """Generalized splits for v2 extension experiments.
+
+    id_name in {'fmnist', 'mnist'} selects the in-distribution dataset
+    (54k train / 6k val, same split seed as v1).  OOD probes are
+    standardized with the *in-distribution* train statistics (same
+    policy as v1).  Returns dict with train/val/test arrays plus
+    'oods': {probe_name: {'x','y'}}.
+    """
+    key = f"load_splits_for:{id_name}"
+    if key in _CACHE:
+        return _CACHE[key]
+    d = np.load(DATA_PATH_V2)
+    ix = d[f"{id_name}_train_x"].astype(np.float32) / 255.0
+    iy = d[f"{id_name}_train_y"].astype(np.int64)
+    itx = d[f"{id_name}_test_x"].astype(np.float32) / 255.0
+    ity = d[f"{id_name}_test_y"].astype(np.int64)
+
+    rng = np.random.default_rng(SPLIT_SEED)
+    idx = rng.permutation(60000)
+    tr, va = idx[:54000], idx[54000:]
+    mu, sd = ix[tr].mean(), ix[tr].std()
+
+    oods = {}
+    if id_name == "fmnist":
+        probes = ["mnist", "kmnist"]
+    elif id_name == "mnist":
+        probes = ["fmnist", "kmnist"]
+    else:
+        raise ValueError(id_name)
+    for p in probes:
+        px = d[f"{p}_test_x"].astype(np.float32) / 255.0
+        py = d[f"{p}_test_y"].astype(np.int64)
+        oods[p] = dict(x=(px - mu) / sd, y=py)
+
+    splits = dict(
+        train_x=(ix[tr] - mu) / sd,
+        train_y=iy[tr],
+        val_x=(ix[va] - mu) / sd,
+        val_y=iy[va],
+        test_x=(itx - mu) / sd,
+        test_y=ity,
+        oods=oods,
+        mu=mu,
+        sd=sd,
+    )
+    _CACHE[key] = splits
+    return splits
 
 # ----------------------------------------------------------------------------- data
 
@@ -95,13 +148,15 @@ def lr_at(step: int, cfg: TrainConfig, steps_per_epoch: int) -> float:
     return cfg.lr_min + 0.5 * (cfg.lr_max - cfg.lr_min) * (1 + math.cos(math.pi * pos))
 
 
-def train_run(cfg: TrainConfig):
+def train_run(cfg: TrainConfig, splits=None):
     """Train one MLP; return (state_dict list, per-epoch history).
 
     If cfg.snapshot, deep-copies of the model are stored after the last step
     of each cycle (epochs epochs/cycles, 2*epochs/cycles, ...).
+    `splits` may be supplied explicitly (v2 multi-dataset runs); it defaults
+    to the v1 Fashion-MNIST splits, preserving bit-level v1 behaviour.
     """
-    s = load_splits()
+    s = load_splits() if splits is None else splits
     X = torch.from_numpy(s["train_x"])
     Y = torch.from_numpy(s["train_y"])
     n = X.shape[0]
@@ -226,6 +281,67 @@ def swa_state_dicts(sds):
     for k in sds[0]:
         out[k] = torch.mean(torch.stack([sd[k].float() for sd in sds]), dim=0)
     return out
+
+
+# --------------------------------------------------------------------- temperature scaling
+
+def _val_nll_at_T(z, y, logT):
+    """Validation NLL of softmax(z / T) with T = exp(logT); z is (n, C) float64."""
+    T = math.exp(logT)
+    zz = z / T
+    zz = zz - zz.max(axis=1, keepdims=True)
+    e = np.exp(zz)
+    p = e / e.sum(axis=1, keepdims=True)
+    return float(-np.mean(np.log(np.clip(p[np.arange(len(y)), y], 1e-300, None))))
+
+
+def fit_temperature(z, y, lo=0.02, hi=50.0):
+    """Fit a single temperature by minimizing validation NLL of softmax(z/T).
+
+    Deterministic grid + golden refinement on log T.  z may be raw logits
+    (single models; canonical Guo et al. scaling) or log of predictive
+    probabilities (ensembles; the standard extension to averaged predictions,
+    since a weight-averaged ensemble has no raw logits of its own).
+    Returns (T_hat, val_nll_at_hat).
+    """
+    z = np.asarray(z, dtype=np.float64)
+    lo_log, hi_log = math.log(lo), math.log(hi)
+    grid = np.linspace(lo_log, hi_log, 400)
+    vals = [_val_nll_at_T(z, y, lt) for lt in grid]
+    i = int(np.argmin(vals))
+    a = grid[max(i - 1, 0)]
+    b = grid[min(i + 1, len(grid) - 1)]
+    # golden-section refinement in [a, b]
+    gr = (math.sqrt(5) - 1) / 2
+    c, d = b - gr * (b - a), a + gr * (b - a)
+    fc, fd = _val_nll_at_T(z, y, c), _val_nll_at_T(z, y, d)
+    for _ in range(60):
+        if fc < fd:
+            b, d, fd = d, c, fc
+            c = b - gr * (b - a)
+            fc = _val_nll_at_T(z, y, c)
+        else:
+            a, c, fc = c, d, fd
+            d = a + gr * (b - a)
+            fd = _val_nll_at_T(z, y, d)
+        if b - a < 1e-10:
+            break
+    logT = (a + b) / 2
+    return float(math.exp(logT)), _val_nll_at_T(z, y, logT)
+
+
+def apply_temperature(z, T):
+    """Predictive probabilities after temperature scaling: softmax(z / T)."""
+    z = np.asarray(z, dtype=np.float64) / T
+    z = z - z.max(axis=1, keepdims=True)
+    e = np.exp(z)
+    return e / e.sum(axis=1, keepdims=True)
+
+
+def log_probs_as_logits(p, eps=1e-12):
+    """Effective logit vector of a predictive distribution: log(clip(p))."""
+    p = np.clip(np.asarray(p, dtype=np.float64), eps, 1.0)
+    return np.log(p)
 
 
 def evaluate_predictor(p_test, s, p_ood=None):

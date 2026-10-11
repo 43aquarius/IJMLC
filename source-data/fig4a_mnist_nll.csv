@@ -1,0 +1,5 @@
+condition,nll_mean,nll_sd
+single,0.072371,0.003347
+deepens,0.056534,0.001484
+snapshot,0.070877,0.002537
+swa,0.074099,0.002899

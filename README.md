@@ -1,103 +1,110 @@
 # Budget-Split Deep Ensembles vs. Snapshot Ensembles and Weight Averaging for Calibrated Uncertainty
 
-Research artifacts for the manuscript ***"Budget-split deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty"***, prepared for submission to the *International Journal of Machine Learning and Cybernetics* (IJMLC).
+Research artifacts for the manuscript ***"Budget-split deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty"*** (v2, prepared for the *International Journal of Machine Learning and Cybernetics*).
 
-> **One-sentence summary.** Under an identical training budget of 60 SGD epochs, splitting the budget across independently restarted networks (budget-split deep ensembles) yields better-calibrated uncertainty than extending single-model training, cycling the learning rate to harvest snapshots, or averaging the weights of those snapshots — and it is the only tested strategy that improves out-of-distribution detection.
+**Author:** Chang Tan (Dalian University of Technology) — corresponding: aquars43@foxmail.com
+
+> **One-sentence summary.** Under an identical training budget, splitting the budget across independently restarted networks (budget-split deep ensembles) yields better-calibrated uncertainty than extending single-model training, cycling the learning rate to harvest snapshots, or averaging the weights of those snapshots — an ordering that is robust across budgets, ensemble sizes and dataset directions, survives per-condition temperature scaling, and extends to out-of-distribution detection, where only prediction averaging helps.
 
 ---
 
 ## 1. Research Question
 
-Practitioners deploying classifiers usually face a **fixed training-compute budget**, yet most method comparisons assume unconstrained budgets. This study asks: *given a fixed budget, how should it be spent to obtain the best-calibrated predictive uncertainty?*
+Practitioners who need calibrated predictive uncertainty usually face a **fixed training budget**, yet method comparisons typically let every method train until it stops improving. This study asks: *given a fixed budget, how should it be spent?*
 
-## 2. Methods Summary
+## 2. Design
 
-Under an identical total budget of **60 SGD epochs**, four allocation strategies were compared for an MLP (784–128–64–10, ~110k parameters, ReLU, no Dropout/BN) trained on **Fashion-MNIST** (in-distribution) with **MNIST** as an out-of-distribution probe:
+Under an identical total budget of **B SGD epochs**, four allocation strategies are compared for an MLP (784–128–64–10, ~110k parameters, ReLU, no Dropout/BN) trained with SGD (batch 256, momentum 0.9, weight decay 1e-4), 54,000 train / 6,000 validation / official test split, **10 seeded replications** per setting:
 
-| Strategy | Budget allocation | Combination rule |
+| Strategy | Allocation | Combination |
 |---|---|---|
-| **Single** | 1 model × 60 epochs | — |
-| **DeepEns** (budget-split) | 3 models × 20 epochs, independent restarts | prediction averaging |
-| **Snapshot** | 1 run × 60 epochs, 3 cyclic-LR cycles | prediction averaging of 3 cycle-end snapshots |
-| **SWA** | same 3 checkpoints as Snapshot | uniform weight averaging |
+| **Single** | 1 model × B epochs | — |
+| **DeepEns** (budget-split) | k models × B/k epochs, independent restarts | prediction averaging |
+| **Snapshot** | 1 run × B epochs, k cyclic-LR cycles | prediction averaging of k cycle-end snapshots |
+| **SWA** | the same k checkpoints | uniform weight averaging |
 
-Shared training configuration: SGD, batch 256, momentum 0.9, weight decay 1e-4; 54,000 train / 6,000 validation / official 10,000-image test split; **10 seeded replications** per condition. The first ensemble member of every condition is bit-identical across conditions (verified), so all comparisons are fully budget-matched and paired at the seed level.
+Clean-by-construction contrasts: the first DeepEns member is bit-identical to the first cyclic snapshot (verified), and Snapshot vs. SWA combine the *identical* checkpoints, isolating function-space vs. parameter-space averaging.
 
-An exploratory variant (**SWA-dense**, averaging all checkpoints from epochs 21–60) is reported separately in the supplementary material.
+## 3. Settings and Key Results (10 seeds each, Holm-adjusted exact permutation tests)
 
-## 3. Key Results (10 seeds, mean values)
+| Setting | Single NLL | DeepEns NLL | Snapshot NLL | SWA NLL | Notes |
+|---|---:|---:|---:|---:|---|
+| **Fashion-MNIST, B=60, k=3** (core) | 0.5265 | **0.3020** | 0.3485 | 0.3868 | all contrasts p=0.0098; after per-condition TS: 0.3325 / **0.2891** / 0.3012 / 0.3104 |
+| Fashion-MNIST, B=30, k=3 | 0.3795 | **0.3041** | 0.3124 | 0.3265 | low budget: gaps compress |
+| Fashion-MNIST, B=120, k=3 | 0.6672 | **0.3355** | 0.4389 | 0.5120 | budget-split advantage **grows** with budget |
+| Fashion-MNIST, B=60, k=5 | 0.5265 | **0.2974** | 0.3230 | 0.3592 | all strategies improve with k |
+| **MNIST, B=60, k=3** (reversed) | 0.0724 | **0.0565** | 0.0709 | 0.0741 | boundary condition: only DeepEns separates from Single (p=0.0098 vs p=0.41) |
 
-| Metric (test) | Single | DeepEns | Snapshot | SWA |
-|---|---:|---:|---:|---:|
-| NLL ↓ | 0.5265 | **0.3020** | 0.3485 | 0.3868 |
-| Accuracy ↑ | 0.8895 | **0.8965** | 0.8935 | 0.8926 |
-| Brier ↓ | 0.1796 | **0.1504** | 0.1596 | 0.1646 |
-| ECE-15 ↓ | 0.0702 | **0.0236** | 0.0444 | 0.0517 |
-| OOD AUROC (MSP) ↑ | 0.7533 | **0.8502** | 0.7956 | 0.7504 |
+- **OOD detection (MSP AUROC):** DeepEns is the only strategy that improves detection on all four in-distribution→probe combinations (Fashion-MNIST→MNIST +0.097, →KMNIST +0.110; MNIST→Fashion-MNIST +0.014, →KMNIST +0.024); SWA shows no reliable improvement on any combination (core MNIST probe: −0.003, p=0.64).
+- **Temperature scaling** (fitted per condition on validation): repairs much of every condition's miscalibration (Single 0.527→0.333) but leaves DeepEns significantly best in every setting, and changes OOD AUROC by at most +0.012.
+- **Mechanism:** budget-split members are better calibrated (member NLL 0.338 vs 0.404) *and* more diverse (JSD 0.0150 vs 0.0106) than continued-training snapshots.
 
-- Every strategy improves NLL over Single (DeepEns −0.225, 95% CI [−0.236, −0.213]; Holm-adjusted exact permutation *P* = 0.0098 per comparison).
-- Ordering **DeepEns > Snapshot > SWA > Single** replicates across calibration and OOD metrics.
-- **Only prediction averaging improves OOD detection**; SWA shows no evidence of OOD improvement (ΔAUROC = −0.003, 95% CI [−0.017, +0.011], *P* = 0.64).
-- Mechanism (member-level measurements): budget-split restarts combine **higher member calibration** (member NLL 0.338 vs. 0.404) **and higher between-member diversity** (JSD 0.0150 vs. 0.0106) relative to snapshots.
-
-**Scope of evidence.** All conclusions are bounded to small networks, one dataset family, and one shift type; see the paper's Limitations section.
+**Scope.** Small MLPs, grayscale 28×28 image tasks, two dataset directions, epoch-denominated budgets, k ∈ {3,5}; see the paper's Limitations section.
 
 ## 4. Repository Structure
 
 ```
-.
-├── paper/                  # Final manuscript PDF (also attached to the GitHub Release)
-├── manuscript-source/     # LaTeX source (main.tex) + cover page source
-├── code/                  # All experiment / analysis / figure scripts (Python)
-│   ├── run_experiments.py      # main budget-matched experiment (4 conditions × 10 seeds)
-│   ├── run_swa_dense.py        # exploratory SWA-dense variant
-│   ├── analyze_results.py      # statistics: paired contrasts, permutation tests, Holm
-│   ├── make_figures.py         # all figures from source data
-│   ├── verify_seed0.py         # bit-level reproducibility check of shared first member
+├── paper/                       # Manuscript PDF (v2, IJMLC format; also on the Release)
+├── manuscript-source/          # Complete LaTeX source (author-year citations)
+├── code/
+│   ├── run_experiments.py           # v1 core experiment (pre-registered)
+│   ├── run_experiments_v2.py        # v2 extensions: budgets/sizes/direction/TS/KMNIST
+│   ├── common.py                    # shared training + metrics + temperature scaling
+│   ├── analyze_results.py           # v1 statistics
+│   ├── analyze_v2.py                # v2 statistics (5 settings, TS families)
+│   ├── make_figures.py / make_figures_v2.py
 │   └── ...
-├── results/                # Raw per-seed results (JSONL), analysis outputs, summaries
-├── figures/                # Final figures (PDF + PNG)
-├── source-data/            # Per-panel CSV source data for every figure
-└── research-docs/          # Pre-registered design, claim–evidence map, figure contract, review report
+├── results/
+│   ├── experiment.jsonl             # v1 raw per-seed records (core setting)
+│   ├── v2/                          # v2 raw per-seed records × 5 settings + analysis
+│   └── analysis.json, contrasts.csv, ...
+├── figures/                     # 4 main + 4 supplementary figures (PDF + PNG)
+├── source-data/                 # Per-panel CSV source data for every figure
+└── research-docs/               # Design, audit, literature review, experiment plan,
+                                 # revision log, claim–evidence maps, submission checklist
 ```
 
-## 5. Reproducing the Experiments
-
-Requirements: Python 3.10+ with CPU-only PyTorch (`pip install -r code/requirements.txt`); no GPU needed.
+## 5. Reproducing
 
 ```bash
 cd code
-python download_data.py      # downloads Fashion-MNIST + MNIST
-python run_experiments.py    # ~4-6 h on 2 CPU cores; 4 conditions × 10 seeds
-python run_swa_dense.py      # exploratory dense-averaging variant
-python analyze_results.py    # paired contrasts, exact permutation tests, Holm correction
-python make_figures.py       # regenerates all figures from results
-python verify_seed0.py       # bit-level determinism check (shared first member)
+pip install -r requirements.txt          # CPU-only PyTorch
+python download_data.py                  # Fashion-MNIST + MNIST
+python download_data_v2.py               # adds KMNIST (datasets_v2.npz)
+python run_experiments.py                # v1 core (optional; v2 re-verifies it)
+python run_experiments_v2.py --id fmnist --budget 60 --k 3 --seeds 0:10 \
+    --out ../results/v2/experiment_v2_fmnist_B60_k3.jsonl
+# ... and the other settings (--id mnist, --budget 30/120, --k 5)
+python analyze_v2.py                     # all statistics
+python make_figures.py && python make_figures_v2.py
 ```
 
-Every reported number can be traced: `results/experiment.jsonl` holds per-seed, per-member raw metrics; `results/analysis.json` holds all statistical tests; `source-data/*.csv` holds the exact values behind each figure panel. A full determinism audit (24/24 metrics exact-match re-run) is documented in `research-docs/research-design.md`.
+The v2 pipeline **reproduces v1 bit-for-bit** (seed-0 re-run: 28/28 recorded metrics exact match), which serves as the release's determinism gate.
 
 ## 6. Research-Integrity Notes
 
-- **No fabricated results.** All numbers in the paper come from the committed raw result files; figures are generated from committed per-panel CSVs.
-- **Statistical rigor.** Seed is the unit of replication; contrasts are seed-paired; exact sign-flip permutation tests with Holm correction over the primary family; exploratory analyses are labeled as such.
-- **AI involvement.** This research workflow, including code, analysis, and manuscript drafting, was conducted with AI assistance (Qinyan Nature Skills workflow); authorship and affiliations are pending author confirmation. See the manuscript title block.
-- **Scope honesty.** Claims are limited to the studied regime (small MLP, Fashion-MNIST/MNIST, one budget level, ensemble size 3).
+- **No fabricated results.** Every number traces to committed raw JSONL records; figures regenerate from committed per-panel CSVs.
+- **Statistical rigor.** Seed is the unit of replication; paired contrasts; exact sign-flip permutation tests; Holm correction per pre-specified family; extensions labelled as non-preregistered.
+- **AI involvement.** Code, analysis and drafting were produced with AI assistance (Qinyan Nature Skills workflow) under the author's direction; all numbers were verified against the released records. See the manuscript's Declarations.
+- **Honest scope.** Conclusions are bounded to the studied regime; the saturated-task boundary condition (MNIST) is reported prominently, not hidden.
 
 ## 7. Citation
 
-Preprint, 2026. If you use this work, please cite the paper release:
-
 ```bibtex
-@misc{budgetsplit2026,
-  title  = {Budget-split deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty},
-  author = {43aquarius},
-  year   = {2026},
-  note   = {Preprint, prepared for the International Journal of Machine Learning and Cybernetics},
-  url    = {https://github.com/43aquarius/IJMLC}
+@article{tan2026budgetsplit,
+  title   = {Budget-split deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty},
+  author  = {Tan, Chang},
+  journal = {Preprint, prepared for the International Journal of Machine Learning and Cybernetics},
+  year    = {2026},
+  url     = {https://github.com/43aquarius/IJMLC}
 }
 ```
 
-## 8. License
+## 8. Version History
 
-Code and data artifacts in this repository are provided for research and reproducibility purposes. The manuscript is a preprint under revision; reuse rights will be determined by the final publication agreement.
+- **v2.0.0 (11 Oct 2026):** IJMLC-format rewrite; adds budget sweep (30/120), ensemble size k=5, reversed MNIST direction, KMNIST second OOD probe, per-condition temperature scaling; author-year citations; Declarations incl. AI-use disclosure.
+- **v1.0.0 (22 Sep 2026):** pre-registered core experiment (Fashion-MNIST, B=60, k=3, 10 seeds) with SWA-dense exploratory variant. Available under the `paper-v1.0.0` release tag.
+
+## 9. License
+
+Code and data artifacts are provided for research and reproducibility purposes. The manuscript is a preprint under revision; reuse rights will be determined by the final publication agreement.
