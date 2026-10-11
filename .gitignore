@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Downloaded datasets (reproduce via code/download_data.py)
+data/
+results/data/
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.synctex.gz
+
+# OS / editor
+.DS_Store
+Thumbs.db

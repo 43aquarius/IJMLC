@@ -1,0 +1,151 @@
+{
+ "entropy_stats": {
+  "single": {
+   "H_in_mean": 0.10732275969237483,
+   "H_out_mean": 0.25415195592317485,
+   "MSP_in_mean": 0.957137729129937,
+   "MSP_out_mean": 0.9013248193923217
+  },
+  "deepens": {
+   "H_in_mean": 0.20902626540323946,
+   "H_out_mean": 0.8474313358790027,
+   "MSP_in_mean": 0.9189886614488222,
+   "MSP_out_mean": 0.6689759766447458
+  },
+  "snapshot": {
+   "H_in_mean": 0.16707237468382755,
+   "H_out_mean": 0.6018134211624231,
+   "MSP_in_mean": 0.9354217804062726,
+   "MSP_out_mean": 0.7662147134265764
+  },
+  "swa": {
+   "H_in_mean": 0.15037360717188764,
+   "H_out_mean": 0.42000918364637446,
+   "MSP_in_mean": 0.9412417391380035,
+   "MSP_out_mean": 0.8416874473405048
+  }
+ },
+ "reproducibility": {
+  "single.nll": {
+   "recomputed": 0.5250290593411032,
+   "recorded": 0.5250290593411032,
+   "exact_match": true
+  },
+  "single.acc": {
+   "recomputed": 0.8884,
+   "recorded": 0.8884,
+   "exact_match": true
+  },
+  "single.ece15": {
+   "recomputed": 0.06920483778617717,
+   "recorded": 0.06920483778617717,
+   "exact_match": true
+  },
+  "single.auroc_msp": {
+   "recomputed": 0.714492845,
+   "recorded": 0.714492845,
+   "exact_match": true
+  },
+  "single.auroc_ent": {
+   "recomputed": 0.28262562999999996,
+   "recorded": 0.28262562999999996,
+   "exact_match": true
+  },
+  "single.brier": {
+   "recomputed": 0.18170290611019455,
+   "recorded": 0.18170290611019455,
+   "exact_match": true
+  },
+  "deepens.nll": {
+   "recomputed": 0.30394928959463785,
+   "recorded": 0.30394928959463785,
+   "exact_match": true
+  },
+  "deepens.acc": {
+   "recomputed": 0.8946,
+   "recorded": 0.8946,
+   "exact_match": true
+  },
+  "deepens.ece15": {
+   "recomputed": 0.024539372460575963,
+   "recorded": 0.024539372460575963,
+   "exact_match": true
+  },
+  "deepens.auroc_msp": {
+   "recomputed": 0.84528792,
+   "recorded": 0.84528792,
+   "exact_match": true
+  },
+  "deepens.auroc_ent": {
+   "recomputed": 0.13855383,
+   "recorded": 0.13855383,
+   "exact_match": true
+  },
+  "deepens.brier": {
+   "recomputed": 0.15186225056636835,
+   "recorded": 0.15186225056636835,
+   "exact_match": true
+  },
+  "snapshot.nll": {
+   "recomputed": 0.3473518292737469,
+   "recorded": 0.3473518292737469,
+   "exact_match": true
+  },
+  "snapshot.acc": {
+   "recomputed": 0.8928,
+   "recorded": 0.8928,
+   "exact_match": true
+  },
+  "snapshot.ece15": {
+   "recomputed": 0.04282737572662975,
+   "recorded": 0.04282737572662975,
+   "exact_match": true
+  },
+  "snapshot.auroc_msp": {
+   "recomputed": 0.798976095,
+   "recorded": 0.798976095,
+   "exact_match": true
+  },
+  "snapshot.auroc_ent": {
+   "recomputed": 0.18994979,
+   "recorded": 0.18994979,
+   "exact_match": true
+  },
+  "snapshot.brier": {
+   "recomputed": 0.16117382190358498,
+   "recorded": 0.16117382190358498,
+   "exact_match": true
+  },
+  "swa.nll": {
+   "recomputed": 0.38412244691045627,
+   "recorded": 0.38412244691045627,
+   "exact_match": true
+  },
+  "swa.acc": {
+   "recomputed": 0.8913,
+   "recorded": 0.8913,
+   "exact_match": true
+  },
+  "swa.ece15": {
+   "recomputed": 0.05027065829370843,
+   "recorded": 0.05027065829370843,
+   "exact_match": true
+  },
+  "swa.auroc_msp": {
+   "recomputed": 0.7453978800000001,
+   "recorded": 0.7453978800000001,
+   "exact_match": true
+  },
+  "swa.auroc_ent": {
+   "recomputed": 0.24713783000000003,
+   "recorded": 0.24713783000000003,
+   "exact_match": true
+  },
+  "swa.brier": {
+   "recomputed": 0.1662797104833032,
+   "recorded": 0.1662797104833032,
+   "exact_match": true
+  }
+ },
+ "reproducibility_pass": true
+}

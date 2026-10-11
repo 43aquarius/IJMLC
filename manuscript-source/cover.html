@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    @page { size: 794px 1123px; margin: 0; }
+    :root {
+      --c-bg: #162032;
+      --c-accent: #8B7E5A;
+      --c-text: #FFFFFF;
+      --c-muted: #8898A8;
+      --c-footer: #607080;
+    }
+    html, body { margin: 0; padding: 0; width: 794px; height: 1123px; background: var(--c-bg); color: var(--c-text); font-family: 'Inter', sans-serif; }
+    @media screen {
+      html { height: auto; display: flex; justify-content: center; min-height: 100vh; background: var(--c-bg); }
+      body { transform-origin: top center; scale: min(1, calc(100vw / 794), calc(100vh / 1123)); margin: 0 auto; box-shadow: 0 0 60px rgba(0,0,0,0.3); }
+    }
+    .cover { width: 794px; height: 1123px; position: relative; box-sizing: border-box; }
+    .vline { position: absolute; left: 42px; top: 76px; bottom: 76px; width: 2.5px; background: var(--c-accent); }
+    .content { position: absolute; left: 95px; right: 76px; top: 0; bottom: 0; }
+    .label { position: absolute; top: 132px; font-size: 9pt; color: var(--c-accent); letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', sans-serif; }
+    .title { position: absolute; top: 210px; font-size: 30pt; font-weight: 700; line-height: 1.28; font-family: 'Playfair Display', serif; color: var(--c-text); max-width: 600px; }
+    .subtitle { position: absolute; top: 540px; font-size: 11.5pt; line-height: 1.55; color: var(--c-muted); max-width: 520px; }
+    .authors { position: absolute; top: 742px; font-size: 12pt; color: var(--c-text); }
+    .institution { position: absolute; top: 782px; font-size: 10pt; color: var(--c-muted); line-height: 1.5; max-width: 520px; }
+    .keywords { position: absolute; top: 878px; font-size: 9pt; color: var(--c-muted); line-height: 1.6; max-width: 560px; }
+    .keywords span { color: var(--c-accent); letter-spacing: 1.5px; text-transform: uppercase; font-size: 8pt; }
+    .footer { position: absolute; bottom: 76px; left: 0; right: 0; display: flex; justify-content: space-between; font-size: 9pt; color: var(--c-footer); }
+  </style>
+</head>
+<body>
+  <div class="cover">
+    <div class="vline"></div>
+    <div class="content">
+      <div class="label">Research Article &nbsp;&middot;&nbsp; Machine Learning</div>
+      <div class="title">Budget-split deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty</div>
+      <div class="subtitle">
+        Under a fixed training budget of 60 SGD epochs on Fashion-MNIST, splitting the budget across
+        three independent 20-epoch restarts gave the lowest test NLL (0.302 vs 0.527 for a single
+        long-trained network; &Delta; = &minus;0.225, 95% CI [&minus;0.236, &minus;0.213], Holm-adjusted
+        P = 0.0098, n = 10 seeds), the best calibration, and the strongest OOD detection. Weight averaging
+        of the same checkpoints improved in-distribution metrics but showed no evidence of improving
+        OOD detection (&Delta; AUROC = &minus;0.003, P = 0.64).
+      </div>
+      <div class="authors">Prepared with the Qinyan Nature Skills research workflow</div>
+      <div class="institution">
+        AI-assisted research study produced with the qinyan-academic-skills workflow
+        (design &rarr; experiment &rarr; analysis &rarr; figures &rarr; writing &rarr; review).
+        Author names and affiliations pending author confirmation.
+      </div>
+      <div class="keywords">
+        <span>Keywords</span>&ensp;deep ensembles &middot; snapshot ensembles &middot; stochastic weight averaging &middot;
+        calibration &middot; uncertainty quantification &middot; budget-matched evaluation
+      </div>
+      <div class="footer">
+        <span>Preprint &mdash; not peer reviewed</span>
+        <span>22 September 2026</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
