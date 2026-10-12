@@ -18,13 +18,14 @@ import time
 import numpy as np
 import torch
 
-sys.path.insert(0, "/home/z/my-project/scripts")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (
     TrainConfig, train_run, load_splits, logits_of, probs_of, ens_probs,
     evaluate_predictor, pairwise_jsd, swa_state_dicts, ece, accuracy, nll,
 )
 
-OUT = "/home/z/my-project/results/experiment.jsonl"
+import paths
+OUT = os.environ.get("BME_OUT", os.path.join(paths.RESULTS, "experiment.jsonl"))
 N_SEEDS = 10
 B = 60          # total budget in epochs
 K = 3           # ensemble size

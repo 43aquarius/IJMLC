@@ -40,8 +40,9 @@ plt.rcParams.update({
     "ps.fonttype": 42,
 })
 
-D = json.load(open("/home/z/my-project/results/figure_data.json"))
-FIGDIR = "/home/z/my-project/figures"
+import paths
+D = json.load(open(os.path.join(paths.RESULTS, "figure_data.json")))
+FIGDIR = paths.FIGURES
 SDIR = f"{FIGDIR}/source_data"
 
 # Okabe-Ito

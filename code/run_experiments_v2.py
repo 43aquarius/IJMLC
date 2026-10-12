@@ -39,7 +39,7 @@ import time
 import numpy as np
 import torch
 
-sys.path.insert(0, "/home/z/my-project/scripts")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (
     TrainConfig, train_run, load_splits_for, logits_of, probs_of, ens_probs,
     evaluate_predictor, pairwise_jsd, swa_state_dicts, ece, accuracy, nll,

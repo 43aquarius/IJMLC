@@ -14,7 +14,8 @@ import json
 import numpy as np
 from scipy import stats
 
-ROWS = [json.loads(l) for l in open("/home/z/my-project/results/experiment.jsonl")]
+import paths
+ROWS = [json.loads(l) for l in open(os.environ.get("BME_IN", os.path.join(paths.RESULTS, "experiment.jsonl")))]
 CONDS = ["single", "deepens", "snapshot", "swa"]
 CONTRASTS = [  # (name, condition A, condition B) -> metric[A] - metric[B]
     ("deepens_vs_single", "deepens", "single"),
@@ -112,7 +113,7 @@ def main():
             "auroc_ent": analyze_contrast(a, b, "auroc_ent"),
         }
 
-    with open("/home/z/my-project/results/analysis.json", "w") as f:
+    with open(os.path.join(paths.RESULTS, "analysis.json"), "w") as f:
         json.dump(out, f, indent=1)
 
     # --- 5. human-readable report
@@ -153,14 +154,14 @@ def main():
 
     # --- 6. CSV summaries
     import csv
-    with open("/home/z/my-project/results/summary_by_condition.csv", "w", newline="") as f:
+    with open(os.path.join(paths.RESULTS, "summary_by_condition.csv"), "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["condition", "metric", "mean", "sd"] + [f"seed{s}" for s in range(n)])
         for c in CONDS:
             for m, s in out["by_condition"][c].items():
                 w.writerow([c, m, f"{s['mean']:.6f}", f"{s['sd']:.6f}"] +
                            [f"{v:.6f}" for v in s["values"]])
-    with open("/home/z/my-project/results/contrasts.csv", "w", newline="") as f:
+    with open(os.path.join(paths.RESULTS, "contrasts.csv"), "w", newline="") as f:
         w = csv.writer(f)
         w.writerow(["contrast", "metric", "mean_delta", "ci95_low", "ci95_high",
                     "p_perm_exact", "p_holm"])

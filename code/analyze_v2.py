@@ -21,7 +21,8 @@ import os
 import numpy as np
 from scipy import stats
 
-V2DIR = "/home/z/my-project/results/v2"
+import paths
+V2DIR = os.environ.get("BME_V2DIR", os.path.join(paths.RESULTS, "v2"))
 CONDS = ["single", "deepens", "snapshot", "swa"]
 CONTRASTS = [
     ("deepens_vs_single", "deepens", "single"),

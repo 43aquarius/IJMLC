@@ -6,6 +6,7 @@ All metrics are computed in float64 for numerical stability.
 """
 import math
 import os
+import sys
 import time
 from dataclasses import dataclass, field
 
@@ -16,10 +17,13 @@ import torch.nn.functional as F
 
 from sklearn.metrics import roc_auc_score
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 torch.set_num_threads(int(os.environ.get("TORCH_THREADS", "2")))
 
-DATA_PATH = "/home/z/my-project/results/data/datasets.npz"
-DATA_PATH_V2 = "/home/z/my-project/results/data/datasets_v2.npz"
+from paths import DATASETS_V1, DATASETS_V2
+
+DATA_PATH = DATASETS_V1
+DATA_PATH_V2 = DATASETS_V2
 SPLIT_SEED = 20260922  # fixed split seed, documented (same as v1)
 
 

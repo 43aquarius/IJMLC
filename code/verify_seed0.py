@@ -11,7 +11,7 @@ import sys
 import numpy as np
 import torch
 
-sys.path.insert(0, "/home/z/my-project/scripts")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (
     TrainConfig, train_run, load_splits, logits_of, probs_of, ens_probs,
     swa_state_dicts,
@@ -65,7 +65,7 @@ out["swa"] = report("swa", p_sw, p_sw_o)
 
 # --- reproducibility check against experiment.jsonl seed 0
 from common import evaluate_predictor
-ref = [json.loads(l) for l in open("/home/z/my-project/results/experiment.jsonl")][0]
+ref = [json.loads(l) for l in open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "results", "experiment.jsonl"))][0]
 repro = {}
 for name, (pt, po) in dict(single=(p_single, p_single_o),
                            deepens=(p_de, p_de_o),
@@ -81,5 +81,5 @@ all_ok = all(v["exact_match"] for v in repro.values())
 print(f"\nBit-level reproducibility of seed 0: {'PASS' if all_ok else 'FAIL'} "
       f"({sum(v['exact_match'] for v in repro.values())}/{len(repro)} metrics exact)")
 
-with open("/home/z/my-project/results/verification_seed0.json", "w") as f:
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "results", "verification_seed0.json"), "w") as f:
     json.dump(dict(entropy_stats=out, reproducibility=repro, reproducibility_pass=all_ok), f, indent=1)

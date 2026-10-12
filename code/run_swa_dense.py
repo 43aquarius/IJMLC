@@ -18,13 +18,14 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-sys.path.insert(0, "/home/z/my-project/scripts")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import (
     TrainConfig, load_splits, MLP, lr_at, train_run, logits_of, probs_of,
     evaluate_predictor, ece,
 )
 
-OUT = "/home/z/my-project/results/experiment_swa_dense.jsonl"
+import paths
+OUT = os.environ.get("BME_OUT", os.path.join(paths.RESULTS, "experiment_swa_dense.jsonl"))
 B, K = 60, 3
 N_SEEDS = 10
 

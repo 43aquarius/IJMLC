@@ -31,7 +31,7 @@
 \newcommand{\ts}{\textsc{TS}}
 
 \hypersetup{
-  pdftitle={Budget-split deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty},
+  pdftitle={Deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty under fixed training budgets},
   pdfauthor={Chang Tan},
   pdfsubject={Budget-matched comparison of ensemble strategies for predictive uncertainty},
   pdfkeywords={deep ensembles, snapshot ensembles, stochastic weight averaging, calibration, uncertainty quantification, budget-matched evaluation, out-of-distribution detection}
@@ -39,40 +39,43 @@
 
 \begin{document}
 
-\title{Budget-split deep ensembles outperform snapshot ensembles and weight
-averaging for calibrated uncertainty\thanks{Preprint prepared for submission
+\title{Deep ensembles outperform snapshot ensembles and weight
+averaging for calibrated uncertainty under fixed training
+budgets\thanks{Preprint prepared for submission
 to the International Journal of Machine Learning and Cybernetics.}}
 \author{Chang Tan\thanks{Corresponding author: aquars43@foxmail.com}\,%
 \thanks{Dalian University of Technology, Dalian, China.}}
-\date{11 October 2026}
+\date{12 October 2026}
 \maketitle
 
 \begin{abstract}
-\noindent Practitioners who need calibrated predictive uncertainty usually
-face a fixed training budget, yet method comparisons typically let every
-method train until it stops improving. We ask how a fixed budget should be
-spent. Under an identical budget of 60 SGD epochs we compared four allocation
-strategies for a multilayer perceptron on Fashion-MNIST: one long-trained
-network (\single); three independently restarted 20-epoch networks combined
-by prediction averaging (\deepens); three cycle-end snapshots of one
-cyclic-learning-rate run (\snapshot); and the uniform weight average of those
-same snapshots (\swa). Across ten seeded replications, every strategy
-improved test negative log-likelihood (NLL) over \single{} (Holm-adjusted
-exact permutation $P=0.0098$), with the ordering \deepens{} $>$ \snapshot{}
-$>$ \swa{} $>$ \single{} on every in-distribution metric. The ordering was
-robust across budgets (30, 60, 120 epochs), ensemble sizes ($k=3$, $5$) and
-a reversed dataset direction (MNIST in-distribution), although on the
-near-saturated MNIST task only \deepens{} separated from \single{}
-($\Delta$NLL $=-0.016$, adjusted $P=0.0098$). Only prediction averaging improved
-out-of-distribution (OOD) detection, on both OOD probes and in both
-directions; \swa{} showed no reliable improvement. Post-hoc temperature
-scaling fitted per condition on validation data repaired much of the
-in-distribution miscalibration of every condition yet left the budget-split
-ensemble significantly best (NLL 0.289 versus 0.333 for calibrated \single{},
-adjusted $P=0.0098$). The evidence is bounded to small networks and
-grayscale image tasks, but within that regime it supports a simple rule:
-split a fixed budget across independent restarts rather than extending
-training or averaging weights.
+\noindent Practitioners who need calibrated predictive uncertainty face a fixed
+training budget, yet method comparisons typically let every method train
+until it stops improving; we ask how the budget should be spent. Under an identical budget of 60 SGD epochs we compared four
+allocation strategies for a multilayer perceptron on Fashion-MNIST: one
+long-trained network (\single); three independently restarted 20-epoch
+networks combined by prediction averaging (\deepens); three cycle-end
+snapshots of one cyclic-learning-rate run (\snapshot); and the uniform
+weight average of those same snapshots (\swa). Across ten seeded
+replications, every strategy improved test negative log-likelihood (NLL)
+over \single{} (Holm-adjusted exact permutation $P=0.0098$), with the
+ordering \deepens{} $>$ \snapshot{} $>$ \swa{} $>$ \single{} on NLL and
+calibration error. This ordering was robust across budgets (30, 60, 120
+epochs), ensemble sizes ($k=3$, $5$), a reversed dataset direction (MNIST
+in-distribution, where only \deepens{} separated from \single{},
+$\Delta$NLL $=-0.016$) and, in a post-hoc extension, a small convolutional
+network on CIFAR-10; secondary metrics showed bounded exceptions at the
+lowest budget. Only prediction averaging improved out-of-distribution (OOD)
+detection, on both probes and in both directions; \swa{} showed no
+improvement surviving multiple-comparison correction. Post-hoc temperature
+scaling fitted per condition on validation data repaired much of every
+condition's miscalibration yet left the budget-split ensemble significantly
+best at the core budget and above (NLL 0.289 versus 0.333 for calibrated
+\single{}), while largely equalising the ensemble strategies at the lowest
+budget. The evidence is bounded to small networks and small-scale image
+tasks, but within that regime it supports a simple rule where calibration
+headroom exists: split a fixed budget across independent restarts rather
+than extending training or averaging weights.
 \end{abstract}
 
 \vspace{2pt}
@@ -133,12 +136,14 @@ continuing one trajectory. Second, \snapshot{} and \swa{} combine the
 \emph{identical} checkpoints, so their contrast isolates the combination
 mechanism---prediction space versus parameter space---with no trajectory
 noise. The pre-registered core setting (Fashion-MNIST, $B=60$, $k=3$, ten
-seeds) is extended here along four axes: total budget ($B \in
+seeds) is extended along five axes: total budget ($B \in
 \{30,60,120\}$), ensemble size ($k \in \{3,5\}$), dataset direction
 (MNIST in-distribution with Fashion-MNIST as the shift probe, in addition
-to the reverse), OOD probe identity (MNIST and KMNIST), and a post-hoc
+to the reverse), OOD probe identity (MNIST and KMNIST), a post-hoc
 temperature-scaling baseline fitted per condition on validation data
-\citep{guo2017,zhang2020}.
+\citep{guo2017,zhang2020}, and---as a post-hoc architecture extension---a
+small convolutional network trained on CIFAR-10 with CIFAR-100 as a
+natural-image shift probe.
 
 The contributions of this paper are ascriptive rather than algorithmic; we
 offer a controlled measurement and a mechanism account, not a new method.
@@ -148,24 +153,32 @@ offer a controlled measurement and a mechanism account, not a new method.
 budget-split ensemble, the snapshot ensemble and the weight average share
 training compute, data and (in part) checkpoints, with seed-paired exact
 permutation inference throughout (Sect.~\ref{sec:methods}).
-\item \textbf{A robust ordering result.} Splitting a fixed budget across
-independent restarts produced the best-calibrated uncertainty on every
-in-distribution metric, and this ordering was stable across budgets,
-ensemble sizes and both dataset directions tested
-(Sect.~\ref{sec:results-main}, \ref{sec:results-robust}).
+\item \textbf{A robust ordering result on the primary outcome.} Splitting
+a fixed budget across independent restarts produced the best-calibrated
+uncertainty on NLL and ECE in every setting tested, and this ordering was
+stable across budgets, ensemble sizes, both dataset directions and a
+CIFAR-10 replication with a convolutional architecture
+(Sect.~\ref{sec:results-main}, \ref{sec:results-robust},
+\ref{sec:results-cifar}).
 \item \textbf{A boundary condition.} On the near-saturated MNIST task the
 single-trajectory strategies stopped separating from the single long-trained
 network, whereas the budget-split ensemble remained significantly better;
-the ensemble effect in this regime requires headroom for longer training to
-damage calibration (Sect.~\ref{sec:results-robust}).
+the ensemble effect in this regime co-occurs with---and plausibly
+requires---headroom for longer training to damage calibration
+(Sect.~\ref{sec:results-robust}).
 \item \textbf{A separation of combination mechanisms under shift.} Averaging
 predictions improved OOD detection on every probe--direction combination,
-while averaging the same weights showed no reliable improvement
-(Sect.~\ref{sec:results-ood}).
+while averaging the same weights showed no improvement surviving
+multiplicity correction (Sect.~\ref{sec:results-ood}).
 \item \textbf{A post-hoc recalibration stress test.} Temperature scaling
 fitted per condition compressed in-distribution differences but did not
-close them, and left OOD detection essentially unchanged
-(Sect.~\ref{sec:results-ts}).
+close them at the core budget or above, and left OOD detection essentially
+unchanged; at the lowest budget it largely equalised the ensemble
+strategies (Sect.~\ref{sec:results-ts}).
+\item \textbf{A cross-architecture replication.} The full ordering, the
+OOD separation and the member-level mechanism measurements replicate on a
+small convolutional network trained on CIFAR-10 with a natural-image shift
+probe (Sect.~\ref{sec:results-cifar}).
 \end{itemize}
 
 The paper proceeds as follows. Section~\ref{sec:related} positions the study
@@ -195,7 +208,12 @@ two respects: we include the two single-trajectory strategies (snapshot
 ensembles and \swa) that a budget-constrained practitioner would actually
 choose between, and we hold checkpoints identical between the
 prediction-averaging and weight-averaging conditions so that the combination
-mechanism is isolated exactly.
+mechanism is isolated exactly. Related fixed-resource questions have been
+asked for \emph{memory}: \citet{chirkova2020} compare one wide network with
+several thinner ones at a fixed parameter count, and applied studies adopt
+cheaper ensemble approximations for industrial reliability
+\citep{thuy2024}; neither addresses training-budget allocation or the
+calibration and OOD endpoints measured here.
 
 \paragraph{Single-trajectory ensembles}
 Snapshot ensembles exploit warm restarts \citep{loshchilov2017}: one
@@ -204,7 +222,12 @@ cyclic-learning-rate run yields several ``free'' models at the cycle minima
 a trajectory and lands in flatter, wider regions associated with better
 generalisation \citep{izmailov2018}; Bayesian readings and Gaussian
 generalisations of the same idea include the work of
-\citet{wilson2020} and \citet{maddox2019}. Related approximations reduce
+\citet{wilson2020} and \citet{maddox2019}. A recent large-scale benchmark
+of checkpoint averaging on AlgoPerf finds that it accelerates training and
+mildly improves generalisation \citep{ajroldi2025}; that evidence concerns
+optimisation speed and accuracy rather than uncertainty quality, and does
+not include the checkpoint-matched contrast with prediction averaging that
+isolates the combination mechanism here. Related approximations reduce
 ensemble cost by sharing parameters, e.g.\ BatchEnsemble
 \citep{wen2020}. These works establish what each strategy achieves at its
 own budget; the budget-matched trade-off among them, and in particular the
@@ -245,9 +268,12 @@ No prior study that we are aware of isolates, within a single controlled
 experiment, (i) the allocation of a fixed budget across restarts versus one
 long run, (ii) the combination of identical checkpoints by prediction
 averaging versus weight averaging, and (iii) the interaction of both with
-post-hoc recalibration and OOD detection. We claim novelty for the
-\emph{comparison design and measurement}, not for any of the component
-methods, all of which are standard.
+post-hoc recalibration and OOD detection; a re-check of the 2024--2025
+literature (including recent weight-averaging benchmarks,
+\citealp{ajroldi2025}) did not surface a study covering any of these three
+contrasts. We claim novelty for the \emph{comparison design and
+measurement}, not for any of the component methods, all of which are
+standard.
 % ─────────────────────────────── 3 methods ───────────────────────────────
 \section{Study design and methods}\label{sec:methods}
 
@@ -285,6 +311,23 @@ schedule relative to the many-checkpoint averages of standard practice
 \citep{izmailov2018}, and an exploratory dense variant averaging every
 epoch-end checkpoint is reported in the supplementary material.
 
+Four cost dimensions must be kept distinct when interpreting these
+comparisons. (i) \emph{Training budget} is exactly matched: every condition
+consumes the same number of optimizer updates over the same data (identical
+batch size and schedule family), which is the axis held fixed throughout.
+(ii) \emph{Wall-clock time} is matched only to the extent that one epoch of
+each condition has the same cost; total run time differs across studies
+(model family) but never across conditions within a study. (iii)
+\emph{Inference cost} is \emph{not} matched: both prediction-averaging
+strategies (\deepens{} and \snapshot{}) require $k$ forward passes per
+prediction, whereas \single{} and \swa{} require one. (iv) \emph{Total
+deployment cost} therefore depends on the ratio of training to inference
+workloads: at high query volumes the $k$-fold inference overhead can offset
+the calibration advantage of prediction averaging, and in such regimes the
+uncalibrated-but-cheap single-trajectory conditions may be preferred. All
+accuracy, calibration and OOD comparisons below are performance statements
+at matched training budget, not total-cost statements.
+
 \subsection{Datasets and splits}\label{sec:datasets}
 
 Two dataset directions are used. In the primary direction, the
@@ -307,25 +350,43 @@ stopping, hyperparameter selection or model selection was performed on
 validation or test data. The test set and the OOD probes were evaluated
 exactly once per condition per replicate, after all training was complete.
 
+For the post-hoc cross-architecture extension, the in-distribution task is
+CIFAR-10 \citep{krizhevsky2009} (50{,}000 training images, $32\times32$
+colour, ten classes; 45{,}000/5{,}000 train--validation split under a new
+documented split seed) with the CIFAR-100 test set (10{,}000 images, 100
+fine-grained classes) as the OOD probe, standardised with the CIFAR-10
+train-split statistics under the same unknown-shift policy. No data
+augmentation was used in any setting, mirroring the core protocol and
+keeping budget accounting exact.
+
 \subsection{Architecture and training}\label{sec:training}
 
-All networks were multilayer perceptrons with layers 784--128--64--10 and
-ReLU activations ($\approx$110k parameters), without dropout or batch
-normalisation. Training used mini-batch SGD with batch size 256 (211 steps
-per epoch on 54{,}000 images), momentum 0.9 and weight decay $10^{-4}$
-(coupled). Learning rates followed per-step cosine schedules from
-$\eta_{\max}=0.1$ to $0$: a single $B$-epoch anneal for \single{}, $k$
+All Fashion-MNIST and MNIST networks were multilayer perceptrons with layers
+784--128--64--10 and ReLU activations ($\approx$110k parameters), without
+dropout or batch normalisation. The CIFAR-10 extension uses a small
+convolutional network: three convolutional blocks (16, 32 and 64
+$3\times3$ filters, each followed by ReLU and $2\times2$ max-pooling) and a
+single fully connected head ($\approx$34k parameters), likewise without batch
+normalisation or dropout. Batch normalisation is deliberately avoided in
+both architectures: its running statistics interact with weight averaging
+and would confound the checkpoint-matched \snapshot{}--\swa{} contrast, and
+the study holds normalisation absent across settings for internal
+consistency. Training used mini-batch SGD with batch size 256 (211 steps
+per epoch on 54{,}000 images; 176 on 45{,}000), momentum 0.9 and weight
+decay $10^{-4}$ (coupled). Learning rates followed per-step cosine schedules
+from $\eta_{\max}=0.1$ to $0$: a single $B$-epoch anneal for \single{}, $k$
 cycles for the cyclic run, and one $B/k$-epoch anneal per \deepens{}
 member. Initialisation used PyTorch's default Kaiming-uniform scheme; the
-data order of each run was generated from a dedicated seeded generator.
-Hyperparameters were fixed from common practice before any test-set
-evaluation, and a pilot confirmed training stability using training and
-validation losses only. On two CPU cores, a $B=60$ replicate took
-72--87\,s of wall-clock time; the extension settings required about 9,000
-training epochs (69 minutes of wall-clock time), and together with the
-pre-registered core and the supplementary dense-\swa{} pass the complete
-study comprises roughly 11,200 epochs, under two hours of single-machine
-CPU time.
+data order of each run was generated from a dedicated seeded generator, with
+the same seed convention in the CIFAR extension. Hyperparameters were
+fixed from common practice before any test-set evaluation, and a pilot
+confirmed training stability using training and validation losses only. On
+two CPU cores, a $B=60$ MLP replicate took 72--87\,s of wall-clock time; the
+extension settings required about 9{,}000 training epochs (69 minutes of
+wall-clock time); and the CIFAR replication roughly 1{,}600 further epochs
+(about 3.5 hours). Together with the pre-registered core and the
+supplementary dense-\swa{} pass the complete study comprises roughly 12{,}800
+epochs of single-machine CPU time.
 
 \subsection{Evaluation metrics}\label{sec:metrics}
 
@@ -373,18 +434,24 @@ differences. We report mean differences with two-sided 95\% $t$-intervals
 ($n-1=9$ degrees of freedom), exact two-sided sign-flip permutation $P$
 values enumerating all $2^{10}$ sign patterns, and Holm--Bonferroni
 adjustment across the five pre-specified contrasts applied to the primary
-outcome (NLL). The five contrasts are \deepens$-$\single,
+outcome (NLL). With ten seeds the uncorrected two-sided sign-flip floor is
+$2/2^{10}=0.0020$ (Holm floor 0.0098), so every contrast reported at that
+value is one in which all ten seeds agree in direction---we note this
+wherever the floor value appears. The five contrasts are \deepens$-$\single,
 \snapshot$-$\single, \swa$-$\single, \deepens$-$\snapshot{} and
 \snapshot$-$\swa{}; the first three measure what each strategy buys over
 spending the whole budget on one network, and the last two locate the
-ordering. The extension settings ($B$, $k$, dataset direction, probes) and
-the temperature-scaled analyses were not part of the pre-registered plan
-and are labelled as such; each extension setting is analysed with the same
-machinery and its own Holm family over the same five contrasts on NLL,
-and the \ts{} family on \ts-NLL is likewise Holm-corrected. Sensitivity
-analyses (10-bin ECE, entropy-based AUROC score, dense \swa{}) were
-specified in advance or, for dense \swa{}, labelled exploratory. No data
-were excluded; no condition, replicate or sample was dropped at any stage.
+ordering. The extension settings ($B$, $k$, dataset direction, probes), the
+temperature-scaled analyses, and the CIFAR-10 cross-architecture
+replication were not part of the pre-registered plan and are labelled as
+such; each is analysed with the same machinery and its own Holm family over
+the same five contrasts on NLL, and the \ts{} family on \ts-NLL is likewise
+Holm-corrected. For the CIFAR replication the hypotheses and analysis plan
+were fixed in writing before any test-set evaluation took place, but the
+setting itself is post-hoc. Sensitivity analyses (10-bin ECE, entropy-based
+AUROC score, dense \swa{}) were specified in advance or, for dense \swa{},
+labelled exploratory. No data were excluded; no condition, replicate or
+sample was dropped at any stage.
 
 \subsection{Reproducibility}\label{sec:repro}
 
@@ -393,12 +460,18 @@ scikit-learn 1.5.2 on Python 3.12 (two CPU cores, no GPU). Every training
 run is deterministic given its replicate seed; the v2 pipeline used for the
 extension settings reproduces the pre-registered v1 records exactly (a
 seed-0 re-run matched all 28 recorded metrics bit-for-bit, and the shared
-first member passed bit-identity checks in both pipelines). Training,
-analysis and figure scripts, the raw per-replicate metric records
-(JSONL), the aggregated analysis outputs and the per-panel figure source
-data are released in a public repository
+first member passed bit-identity checks in both pipelines), and a
+clean-environment gate (fresh virtual environment, fresh data download,
+refactored path-independent code in a fresh directory) reproduced all 110
+recorded seed-0 metric values, including per-bin reliability entries,
+bit-for-bit. The CIFAR pipeline additionally re-verified the shared-first-
+member bit-identity and the exact equivalence of its sharded, checkpointed
+execution against one-shot training. Training, analysis and figure
+scripts, the raw per-replicate metric records (JSONL), the aggregated
+analysis outputs and the per-panel figure source data are released in a
+public repository
 (\url{https://github.com/43aquarius/IJMLC}); datasets are publicly
-available \citep{xiao2017,lecun1998,clanuwat2018}.
+available \citep{xiao2017,lecun1998,clanuwat2018,krizhevsky2009}.
 
 % ─────────────────────────────── 4 results ───────────────────────────────
 \section{Results}\label{sec:results}
@@ -421,7 +494,8 @@ trajectory with the worst predictive log-likelihood: its NLL of $0.5265
 0.0015$, reflecting severe overconfidence rather than classification
 error.
 
-The same ordering held on every secondary in-distribution metric
+The same ordering held on every secondary in-distribution metric in the
+core setting
 (Table~\ref{tab:conditions}). Accuracy improved modestly but consistently,
 the Brier score and ECE followed the NLL ordering, and the effect sizes
 were stable across replicates (all ten replicates favoured every strategy
@@ -516,15 +590,34 @@ one budget, one ensemble size or one dataset direction
 (Fig.~\ref{fig:robust}, Table~\ref{tab:extension}). Across budgets
 $B \in \{30, 60, 120\}$ the NLL ordering \deepens{} $>$ \snapshot{} $>$
 \swa{} $>$ \single{} was preserved, with all five contrasts
-Holm-adjusted $P=0.0098$ at every budget. The budget-split advantage
-\emph{grew} with the budget: the \deepens$-$\single{} difference widened
+Holm-adjusted $P=0.0098$ at every budget; the ECE ordering was likewise
+preserved at every budget. The budget-split advantage \emph{grew} with the
+budget: the \deepens$-$\single{} difference widened
 from $-0.0754$ at $B=30$ to $-0.2245$ at $B=60$ and $-0.3317$ at $B=120$,
 because longer training made the single network progressively more
 overconfident (its NLL rose from $0.3795$ to $0.5265$ to $0.6672$ while
 its accuracy was flat) while the 20- or 40-epoch restart members stayed
 well calibrated. Enlarging the ensemble from $k=3$ to $k=5$ at fixed
-budget improved every strategy (Fig.~\ref{fig:robust}b) and preserved the
-ordering (\deepens{} $-0.2290$ vs.\ \single{}, adjusted $P=0.0098$).
+budget improved every ensemble strategy (Fig.~\ref{fig:robust}b; \single{}
+is unchanged by construction) and preserved the NLL ordering
+(\deepens{} $-0.2290$ vs.\ \single{}, adjusted $P=0.0098$).
+
+The secondary metrics were \emph{not} uniformly ordered in every setting,
+and the exceptions are informative. In the core setting and at $B=120$ the
+strict four-way ordering held on every in-distribution metric
+(Table~\ref{tab:conditions}), but at $B=30$ accuracy was highest for
+\snapshot{} (0.8929) and lowest for \deepens{} (0.8905, versus 0.8917 for
+\single{}; paired \deepens$-$\single{} $-0.0012$ $[-0.0021,-0.0002]$,
+uncorrected $P=0.018$), and \snapshot{} also attained the best Brier
+score (0.1562 versus 0.1573 for \deepens{}). At $k=5$, \snapshot{}'s
+accuracy was nominally highest (0.8944 versus 0.8938). All such reversals
+are bounded by $0.003$ in magnitude, appear only at the lowest budget or
+the larger ensemble size, and never affect NLL or ECE; we therefore claim
+the strict every-metric ordering only for the core setting and $B=120$,
+and the NLL/ECE ordering across all Fashion-MNIST settings. They
+qualitatively match the budget-sweep account: at $B=30$ the single network
+is not yet overconfident (ECE 0.049 versus 0.070 at $B=60$), so the
+between-strategy gaps that calibration carries are small.
 
 Reversing the dataset direction exposed a boundary condition. With MNIST
 as the in-distribution task (accuracy $0.982$ for \single{}; ECE $0.0098$),
@@ -532,13 +625,14 @@ only \deepens{} separated from \single{} on NLL ($-0.0158$, 95\% CI
 $[-0.0183,-0.0134]$, adjusted $P=0.0098$); the single-trajectory
 strategies showed no reliable improvement (\snapshot{} $-0.0015$,
 $P=0.41$; \swa{} $+0.0017$, $P=0.41$; Fig.~\ref{fig:direction}a). The
-ensemble effect that longer training damages calibration and averaging
-repairs it---requires headroom that the near-saturated MNIST task does not
-provide: the single 60-epoch network was already well calibrated there
-(ECE $0.0098$ versus $0.0702$ on Fashion-MNIST). The budget-split restarts
-nevertheless remained the best allocation even on MNIST: \deepens{} still
-beat \snapshot{} ($-0.0143$, adjusted $P=0.0098$), and by adjacency also
-\swa{} (the \snapshot$-$\swa{} contrast was itself significant at adjusted
+ensemble effect documented here---longer training damages calibration and
+averaging repairs it---is observed only where such damage exists; the
+near-saturated MNIST task provides no such headroom, its single 60-epoch
+network already being well calibrated (ECE $0.0098$ versus $0.0702$ on
+Fashion-MNIST). The budget-split restarts nevertheless remained the best
+allocation on NLL even on MNIST: \deepens{} still beat \snapshot{}
+($-0.0143$, adjusted $P=0.0098$), and by adjacency also \swa{} (the
+\snapshot$-$\swa{} contrast was itself significant at adjusted
 $P=0.0098$).
 
 \begin{figure}[t]
@@ -613,26 +707,28 @@ temperatures mirror the overconfidence ordering (\single{} $2.46$,
 \swa{} $1.79$, \snapshot{} $1.58$, \deepens{} $1.25$): the strategies that
 looked worst calibrated uncalibrated needed the most cooling.
 
-Two findings survive the recalibration, however. First, the ordering
+Two findings survive the recalibration at the core budget and above,
+with one boundary case at the lowest budget. First, the ordering
 persisted: after per-condition \ts{}, \deepens{} still attained the lowest
 NLL ($0.2891 \pm 0.0020$) and every contrast in the five-contrast family
 remained significant at Holm-adjusted $P=0.0098$ (\deepens$-$\single{}
-$-0.0434$, 95\% CI $[-0.0468,-0.0400]$; Fig.~\ref{fig:ts}a). Budget-split
-restarts therefore do not merely produce a conveniently recalibratable
-distribution; averaging independent restarts yields information that a
-monotone rescaling of any single trajectory cannot recover. Second,
-recalibration bought nothing where the deployment risk lives: \ts{}
-changed OOD AUROC by at most $+0.012$ on any condition or probe
-(e.g.\ \single{} $0.7533 \rightarrow 0.7620$ on the MNIST probe,
-\deepens{} $0.8502 \rightarrow 0.8566$), leaving the between-strategy OOD
-differences intact (Sect.~\ref{sec:results-ood}). The same two conclusions
-held in every extension setting: after \ts{}, \deepens{} remained
-significantly better than \single{} on NLL at $B=30$ ($-0.0114$),
-$B=120$ ($-0.0567$), $k=5$ ($-0.0384$) and in the MNIST direction
-($-0.0071$), all adjusted $P=0.0098$. In the low-budget setting the
-\ts-adjusted strategies were close together (NLL $0.299$--$0.313$), so
-post-hoc calibration is a genuine partial substitute when the budget is
-small; at and beyond the core budget it is not.
+$-0.0434$, 95\% CI $[-0.0468,-0.0400]$; Fig.~\ref{fig:ts}a). The same
+held at $B=120$, at $k=5$ and in the MNIST direction (all \deepens{}
+versus \single{} adjusted $P=0.0098$; Supplementary Table~S3). At
+$B=30$, however, recalibration largely equalised the ensemble
+strategies: \ts-adjusted NLLs spanned only 0.2986--0.3126, and \snapshot{}
+was nominally best, with the \deepens$-$\snapshot{} difference on
+\ts-NLL reversed ($+0.0026$ $[+0.0002,+0.0050]$, adjusted $P=0.045$).
+Budget-split restarts therefore do not merely produce a conveniently
+recalibratable distribution---at and beyond the core budget, averaging
+independent restarts yields information that a monotone rescaling of any
+single trajectory cannot recover---but at small budgets, where the single
+network is only mildly overconfident, post-hoc calibration is a genuine
+partial substitute. Second, recalibration bought nothing where the
+deployment risk lives: \ts{} changed OOD AUROC by at most $+0.012$ on any
+condition or probe (e.g.\ \single{} $0.7533 \rightarrow 0.7620$ on the
+MNIST probe, \deepens{} $0.8502 \rightarrow 0.8566$), leaving the
+between-strategy OOD differences intact (Sect.~\ref{sec:results-ood}).
 
 \begin{figure}[t]
 \centering
@@ -659,26 +755,29 @@ the maximum-softmax score (Fig.~\ref{fig:direction}b). In the core
 setting, \deepens{} improved AUROC by $+0.0969$ over \single{} on the MNIST
 probe (95\% CI $[+0.0847,+0.1091]$, $P=0.0020$) and by $+0.1097$
 ($[+0.1004,+0.1190]$) on the KMNIST probe, whereas \swa{} showed no
-reliable improvement on the MNIST probe ($-0.0029$, $[-0.0166,+0.0109]$,
-$P=0.64$) and only a small, order-of-magnitude-smaller effect on KMNIST
-($+0.0112$, $[+0.0023,+0.0202]$, $P=0.023$ uncorrected). \snapshot{}
-occupied an intermediate position ($+0.0423$ and $+0.0585$
-respectively). Because \snapshot{} and \swa{} combine the identical three
-checkpoints, this difference is attributable to the combination mechanism
-alone: averaging predictions transfers the members' ability to disagree on
-shifted inputs into the score, while averaging weights collapses the
-members into one network whose confidence behaviour under shift is
-essentially that of the trajectory it came from. We note that the width of
-the \swa{} interval (about $0.028$ AUROC units) bounds what this design can
-resolve; the claim is one of absence of evidence at this precision, not of
-evidence of absence.
+improvement that survives correction for multiplicity: $-0.0029$
+($[-0.0166,+0.0109]$) on the MNIST probe ($P=0.64$) and a small,
+order-of-magnitude-smaller effect on KMNIST ($+0.0112$,
+$[+0.0023,+0.0202]$, $P=0.023$ uncorrected; OOD contrasts are secondary
+and reported uncorrected throughout---five contrasts per probe, so
+uncorrected $P$ values near 0.05 should be read cautiously). \snapshot{} occupied an intermediate
+position ($+0.0423$ and $+0.0585$ respectively). Because \snapshot{} and
+\swa{} combine the identical three checkpoints, this difference is
+attributable to the combination mechanism alone: averaging predictions
+transfers the members' ability to disagree on shifted inputs into the
+score, while averaging weights collapses the members into one network
+whose confidence behaviour under shift is essentially that of the
+trajectory it came from. We note that the width of the \swa{} interval
+(about $0.028$ AUROC units) bounds what this design can resolve; the claim
+is one of absence of evidence at this precision, not of evidence of
+absence.
 
 The pattern generalised across probes and directions. Across the four
 combinations of in-distribution task and OOD probe, \deepens{} gave the
-best OOD detection and was the only strategy whose
-improvement over \single{} was significant on every combination (in the
-MNIST direction: $+0.0139$, $P=0.008$, and $+0.0235$, $P=0.002$); the
-single-trajectory strategies were statistically indistinguishable from
+best OOD detection and was the only strategy whose improvement over
+\single{} was significant on every combination (in the MNIST direction:
+$+0.0139$, $P=0.008$, and $+0.0235$, $P=0.002$, uncorrected as above);
+the single-trajectory strategies were statistically indistinguishable from
 \single{} on both probes of the MNIST direction ($P \geq 0.08$). The same
 pattern held with the negative-entropy score, so the conclusion is not
 specific to the score function, and the exploratory dense \swa{} variant
@@ -724,24 +823,116 @@ $0.0101$ versus $0.0107$, the diversity gap narrowing as the shorter
 12-epoch members become more similar). Both quantities point in the
 direction that favours independent restarts; we note, however, that with
 $n=10$ replicates and $k \leq 5$ members these measurements associate the
-mechanism with the outcome rather than establishing it causally.
+mechanism with the outcome rather than establishing it causally. The same
+two ingredients replicate in the CIFAR-10 extension with much larger gaps
+(Sect.~\ref{sec:results-cifar}).
+
+\subsection{Cross-architecture replication: CIFAR-10 with a convolutional
+network}\label{sec:results-cifar}
+
+All results above were obtained with multilayer perceptrons on grayscale
+digit tasks. To test whether the findings depend on that regime, we repeated
+the full core design (B=60, $k=3$, ten seeds, identical optimiser protocol
+and seed conventions) with a small convolutional network on CIFAR-10, using
+the CIFAR-100 test set as a natural-image shift probe. This extension was
+designed and its analysis plan fixed after the MLP results were known, and
+is therefore labelled post-hoc throughout; the data were evaluated exactly
+once, after all training was complete. The replication is summarised in
+Fig.~\ref{fig:cifar} and Table~\ref{tab:cifar}.
+
+The replication confirms every qualitative finding of the MLP study, with
+larger margins. The single 60-epoch network was severely overconfident on
+CIFAR-10 (NLL 1.9959 at accuracy 0.7086), and all three
+strategies improved NLL over \single{} with the same ordering as on
+Fashion-MNIST: \deepens{} 0.7070 $<$ \snapshot{} 0.8890 $<$ \swa{} 1.0740.
+All five contrasts were significant after Holm adjustment within the
+setting's family (all adjusted $P=0.0098$); the budget-split advantage
+($-1.2889$ NLL, 95\% CI $[-1.3432,-1.2345]$) was several times larger than the
+Fashion-MNIST core effect ($-0.2245$), and the pattern extended to every
+in-distribution metric, including accuracy (\deepens{} $-$ \single{} $+0.0699$
+$[+0.0627,+0.0772]$) and ECE (Table~\ref{tab:cifar}). Under the
+natural-image shift probe (CIFAR-100), the checkpoint-matched separation
+replicated: prediction averaging improved OOD detection over \single{}
+(\deepens{} $+0.0689$ $[+0.0635,+0.0743]$, \snapshot{} $+0.0393$), whereas
+weight averaging of the identical checkpoints improved detection by less
+($+0.0247$ $[+0.0224,+0.0269]$, uncorrected $P=0.002$): unlike on the digit
+tasks, this effect is significant before correction, but it amounts to
+roughly two-thirds of \snapshot{}'s improvement and one-third of
+\deepens{}'s.
+Per-condition temperature scaling again compressed but did not close the
+gap (\deepens{} $-$ \single{} on \ts-NLL $-0.1827$, adjusted $P=0.0098$), and the
+mechanism measurements pointed the same way as on Fashion-MNIST: restart
+members were better calibrated individually than continued-training
+snapshots (member NLL 1.0676 versus 1.2288) and more diverse
+(mean pairwise JSD 0.1545 versus 0.0915 nats). The fitted
+temperatures mirrored the overconfidence ordering
+(\single{} 4.23, \swa{} 2.30, \snapshot{} 1.88, \deepens{} 1.14). As a replication, this
+extension changes no claims' direction; it strengthens their external
+validity by one architecture family and one natural-image dataset with a
+semantically richer shift probe. One of the ten replicates reversed the \deepens{}--\snapshot{} ordering at seed level; the paired contrast remains significant across seeds and the confidence interval above reflects that variability.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{../figures/fig5_cifar.pdf}
+\caption{\textbf{Cross-architecture replication (CIFAR-10, small CNN;
+post-hoc extension).} \textbf{a}, Test NLL by condition ($B=60$, $k=3$;
+thin lines connect the ten replicate-level observations, large markers are
+condition means). \textbf{b}, OOD-detection AUROC (MSP score) against the
+CIFAR-100 probe. The ordering and the prediction-averaging versus
+weight-averaging separation replicate the MLP results with substantially
+larger margins.}
+\label{fig:cifar}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{\textbf{CIFAR-10 replication: condition summaries and pre-specified
+contrasts on NLL} (small CNN, $B=60$, $k=3$; $n=10$ replicates; post-hoc
+extension analysed with the same machinery, Holm family on NLL).}
+\label{tab:cifar}
+\small
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} l cccc}
+\toprule
+Metric & \single{} & \deepens{} & \snapshot{} & \swa{} \\
+\midrule
+Test NLL & $1.9959 \pm 0.0269$ & $0.7070 \pm 0.0783$ & $0.8890 \pm 0.0157$ & $1.0740 \pm 0.0173$ \\
+Accuracy & $0.7086 \pm 0.0052$ & $0.7786 \pm 0.0081$ & $0.7466 \pm 0.0044$ & $0.7331 \pm 0.0032$ \\
+ECE (15 bins) & $0.2213 \pm 0.0037$ & $0.0407 \pm 0.0596$ & $0.0826 \pm 0.0030$ & $0.1454 \pm 0.0022$ \\
+\ts-NLL & $0.8620 \pm 0.0099$ & $0.6793 \pm 0.0294$ & $0.7501 \pm 0.0104$ & $0.7798 \pm 0.0108$ \\
+AUROC (MSP), CIFAR-100 & $0.6799 \pm 0.0035$ & $0.7488 \pm 0.0049$ & $0.7192 \pm 0.0034$ & $0.7046 \pm 0.0026$ \\
+Member mean NLL & n/a & $1.0676 \pm 0.1254$ & $1.2288 \pm 0.0202$ & n/a \\
+Disagreement JSD & n/a & $0.1545 \pm 0.0614$ & $0.0915 \pm 0.0012$ & n/a \\
+\midrule
+\multicolumn{5}{l}{\emph{Contrasts on test NLL} (mean paired difference, 95\% CI, Holm-adjusted $P$):} \\
+\deepens{} $-$ \single{} & \multicolumn{4}{l}{$-1.2889$ $[-1.3432,-1.2345]$, $P{=}0.0098$} \\
+\snapshot{} $-$ \single{} & \multicolumn{4}{l}{$-1.1069$ $[-1.1281,-1.0856]$, $P{=}0.0098$} \\
+\swa{} $-$ \single{} & \multicolumn{4}{l}{$-0.9219$ $[-0.9448,-0.8990]$, $P{=}0.0098$} \\
+\deepens{} $-$ \snapshot{} & \multicolumn{4}{l}{$-0.1820$ $[-0.2402,-0.1238]$, $P{=}0.0098$} \\
+\snapshot{} $-$ \swa{} & \multicolumn{4}{l}{$-0.1850$ $[-0.1908,-0.1792]$, $P{=}0.0098$} \\
+\bottomrule
+\end{tabular*}
+\end{table}
 
 % ─────────────────────────────── 5 discussion ───────────────────────────────
 \section{Discussion}\label{sec:discussion}
 
 At a fixed training budget, this study returns a consistent allocation
 rule: splitting the budget across independent restarts (\deepens{})
-produced the most accurate and best-calibrated uncertainty in every
+produced the best-calibrated uncertainty on the primary outcome in every
 setting we measured---both dataset directions, three budgets spanning a
-$4\times$ range, and two ensemble sizes; a cyclic-schedule snapshot
-ensemble (\snapshot{}) captured most of the in-distribution benefit at one
-run's bookkeeping cost; and weight averaging (\swa{}) improved
-in-distribution metrics but, unlike either prediction-averaging strategy,
-showed no reliable improvement in OOD detection. Because the four
-conditions shared data, architecture, optimizer, budget and pairing by
-seed, and because \snapshot{} and \swa{} shared the identical checkpoints,
-these differences are attributable to the allocation of the budget and the
-mechanism of combination rather than to tuning or trajectory noise.
+$4\times$ range, two ensemble sizes, and a CIFAR-10 replication with a
+convolutional architecture; a cyclic-schedule snapshot ensemble
+(\snapshot{}) captured most of the in-distribution benefit at one run's
+bookkeeping cost; and weight averaging (\swa{}) improved in-distribution
+metrics but, unlike either prediction-averaging strategy, showed no
+improvement in OOD detection that survived multiple-comparison correction.
+Because the four conditions shared data, architecture, optimizer, budget and
+pairing by seed, and because \snapshot{} and \swa{} shared the identical
+checkpoints, these differences are attributable to the allocation of the
+budget and the mechanism of combination rather than to tuning or trajectory
+noise. The one systematic exception---secondary-metric orderings at the
+lowest budget and at $k=5$---never touched NLL or ECE and never exceeded
+$0.003$ in magnitude.
 
 The mechanism measurements suggest an interpretation in terms of where the
 two averaging operations act. Prediction averaging operates in function
@@ -768,17 +959,21 @@ boundary: on a near-saturated task where the long-trained single network
 is already well calibrated, the single-trajectory strategies had nothing
 left to repair and stopped separating from \single{}, while budget-split
 restarts still helped. The ensemble effect documented here is therefore
-not universal; it is a property of regimes with calibration headroom,
-which include most practically deployed under-trained or heavily optimised
-classifiers and exclude easy saturated tasks.
+not universal; it is a property of regimes with calibration headroom. The
+MLP evidence suggests such headroom arises when training is long enough
+to damage calibration without improving accuracy; we have not surveyed how
+common this regime is among deployed systems, and the rule should be read
+as conditional on verifying that the long-trained baseline is overconfident
+(a single reliability diagram suffices).
 
 Post-hoc recalibration is the strongest available objection to any
 calibration comparison, and our answer is two-sided. In distribution,
 per-condition temperature scaling is a genuine partial substitute,
 especially at small budgets where the \ts-adjusted strategies clustered
-within $0.014$ NLL of each other; at the core budget and above, however,
-the recalibrated budget-split ensemble remained significantly better than
-every recalibrated alternative. Under shift, temperature scaling bought
+within $0.014$ NLL of each other and the ensemble ordering itself was no
+longer significant; at the core budget and above, however, the
+calibrated budget-split ensemble remained significantly better than
+every calibrated alternative. Under shift, temperature scaling bought
 nothing---it changes confidence levels, not their ranking across
 inputs---so the OOD advantage of prediction averaging cannot be recovered
 post hoc. This refines the classical observation that ensembles remain
@@ -792,9 +987,16 @@ comparison---deep ensembles are strong but assumed expensive
 \citep{lakshminarayanan2017,fort2019}, snapshot ensembles are attractive
 because one run yields several models \citep{huang2017}, and \swa{}
 improves accuracy and in-distribution calibration
-\citep{izmailov2018,wilson2020}---but they quantify the trade-off under
-the constraint that matters in practice. The budget-matched framing
-reverses the usual cost accounting: a deep ensemble of three 20-epoch runs
+\citep{izmailov2018,wilson2020,ajroldi2025}---but they quantify the
+trade-off under the constraint that matters in practice. The CIFAR-10
+replication shows that the trade-off is not an artefact of multilayer
+perceptrons or of grayscale digits: on a small convolutional network
+trained on natural images, the same ordering appeared with much larger
+margins (the single network's raw NLL was above 2.0), and
+the checkpoint-matched separation between prediction averaging and weight
+averaging carried over to a semantically richer natural-image shift probe.
+The budget-matched framing reverses the usual
+cost accounting: a deep ensemble of three 20-epoch runs
 is not three times as expensive as one 60-epoch run; it \emph{is} the same
 budget spent differently. Under that accounting, the ``expensive''
 strategy was uniformly best in this regime, the ``free'' strategies
@@ -808,30 +1010,42 @@ three-fold reduction in per-member training.
 
 For practitioners, the allocation rule we can support is as follows. At
 small scale and fixed compute, prefer independent restarts over longer
-training for calibrated uncertainty. If only a single trajectory is
-affordable, prefer its snapshot ensemble over its weight average when
-shift robustness matters, and apply temperature scaling regardless: it is
-nearly free, repairs in-distribution overconfidence, and does no harm to
-shift detection. Treat \swa{} as an accuracy-and-fit tool rather than a
-shift detector, consistent with evidence that OOD failures often persist
-across training procedures \citep{hendrycks2017,nguyen2015}. The rule is
+training for calibrated uncertainty, provided the long-trained baseline is
+in fact overconfident. If only a single trajectory is affordable,
+prefer its snapshot ensemble over its weight average when shift robustness
+matters, and apply temperature scaling regardless: it is nearly free,
+repairs in-distribution overconfidence, and does no harm to shift
+detection. Budget for the inference side as well: prediction averaging
+costs $k$ forward passes per query, whereas \single{} and \swa{} cost one,
+so at high query volume the cheapest calibrated option may be a
+temperature-scaled single-trajectory model rather than an ensemble. Treat
+\swa{} as an accuracy-and-fit tool rather than a shift detector, consistent
+with evidence that OOD failures often persist across training procedures
+\citep{hendrycks2017,nguyen2015}. The rule is
 bounded by the scope of the evidence, which we summarise in
 Sect.~\ref{sec:limitations}.
 
 % ─────────────────────────────── 6 limitations ───────────────────────────────
 \subsection{Limitations}\label{sec:limitations}
 
-Our study used one architecture family (a small multilayer perceptron
-without batch normalisation or dropout); convolutional and
-transformer-based networks, and larger models in general, remain untested
-here, and the CPU-bound design is the reason. The dataset families are two
-grayscale $28 \times 28$ image tasks and their probes; conclusions about
-natural-image or cross-modal shift would require further experiments. The
-budget is denominated in epochs at a fixed learning-rate ceiling and
-optimizer family rather than wall-clock or energy; other optimizers or
-schedules could shift the crossover points, although not the
-checkpoint-matched logic of the \snapshot$-$\swa{} contrast. Ensemble
-sizes are $k \in \{3,5\}$. Our \swa{} variant is checkpoint-matched to
+Our evidence covers two small architectures---a 110k-parameter multilayer
+perceptron on grayscale digit tasks and, in a post-hoc extension, a
+34k-parameter convolutional network on CIFAR-10---both without batch
+normalisation or dropout; transformer-based networks, architectures with
+normalisation layers (whose interaction with weight averaging raises
+separate technical issues), and larger models in general remain untested
+here, and the CPU-bound design is the reason. The CIFAR replication uses
+one small natural-image task with a single natural-image shift probe at
+$32\times32$ resolution and a deliberately modest training budget, so it
+demonstrates that the MLP findings are not specific to that regime, not
+that they extend to large-scale training. The budget is denominated in
+epochs at a fixed learning-rate ceiling and optimizer family rather than
+wall-clock or energy; other optimizers or schedules could shift the
+crossover points, although not the checkpoint-matched logic of the
+\snapshot$-$\swa{} contrast. Inference cost was not part of the matched
+budget: prediction averaging costs $k$ forward passes per query, which
+matters in deployment (Sect.~\ref{sec:conditions}). Ensemble sizes are
+$k \in \{3,5\}$. Our \swa{} variant is checkpoint-matched to
 the snapshot ensemble by design; although a dense 40-checkpoint average
 did not change the qualitative conclusion, other \swa{} schedules might.
 Temperature scaling is the only post-hoc recalibration tested; more
@@ -839,8 +1053,11 @@ flexible calibrators \citep{zhang2020} could in principle compress the
 in-distribution gaps further. The OOD probes are dataset-level shifts
 between tasks of the same modality, evaluated with confidence-based
 scores; no corruptions, adversarial perturbations or likelihood-based
-methods were considered. Finally, the mechanism analysis is associational
-by design; a causal decomposition of the ensemble gain into
+methods were considered. The CIFAR-10 replication, the budget sweep beyond
+$k=3$-at-$B=60$ and all other extensions are post-hoc analyses, labelled
+as such throughout, and their statistical corrections do not carry the
+pre-registered status of the core setting. Finally, the mechanism analysis
+is associational by design; a causal decomposition of the ensemble gain into
 member-quality and diversity components would require interventions on
 each ingredient separately.
 
@@ -848,20 +1065,25 @@ each ingredient separately.
 \section{Conclusion}\label{sec:conclusion}
 
 We compared four ways of spending a fixed training budget on the
-uncertainty of one classifier, holding compute, data, optimizer and (in
-part) checkpoints identical across conditions. Budget-split deep ensembles
-gave the best-calibrated in-distribution uncertainty in every setting
-tested, an advantage that grew with the budget and survived per-condition
-temperature scaling; single-trajectory strategies captured part of the
+uncertainty of a classifier, holding compute, data, optimizer and (in part)
+checkpoints identical across conditions. Budget-split deep ensembles gave
+the best-calibrated in-distribution uncertainty on the primary outcome in
+every setting tested---five Fashion-MNIST settings spanning a $4\times$
+budget range and two ensemble sizes, a reversed dataset direction, and a
+CIFAR-10 replication with a convolutional architecture---an advantage that
+grew with the budget and survived per-condition temperature scaling at the
+core budget and above, while secondary metrics showed bounded exceptions at
+the lowest budget. Single-trajectory strategies captured part of the
 benefit on tasks with calibration headroom and none of it on a saturated
-task; and only prediction averaging improved out-of-distribution
-detection, on every probe and direction tested, while weight averaging of
-the same checkpoints showed no reliable improvement. The paired,
-seed-replicated, checkpoint-matched template used here is directly reusable
-for larger networks, harder shifts and richer recalibration families, and
-we release all code and raw records to make such extensions cheap. In the
-regime we measured, the practical answer to ``how should a fixed training
-budget be spent for calibrated uncertainty?'' is: across independent
+task. Only prediction averaging improved out-of-distribution detection, on
+every probe and direction tested, while weight averaging of the same
+checkpoints showed no improvement surviving multiple-comparison
+correction. The paired, seed-replicated, checkpoint-matched template used
+here is directly reusable for larger networks, harder shifts and richer
+recalibration families, and we release all code and raw records to make
+such extensions cheap. In the regimes we measured, the practical answer to
+``how should a fixed training budget be spent for calibrated uncertainty,
+when the long-trained baseline is overconfident?'' is: across independent
 restarts, not along one trajectory.
 
 % ─────────────────────────────── declarations ───────────────────────────────
@@ -881,7 +1103,8 @@ datasets.
 
 \paragraph{Data availability}
 The datasets analysed are publicly available: Fashion-MNIST
-\citep{xiao2017}, MNIST \citep{lecun1998} and KMNIST \citep{clanuwat2018}.
+\citep{xiao2017}, MNIST \citep{lecun1998}, KMNIST \citep{clanuwat2018}
+and CIFAR-10/CIFAR-100 \citep{krizhevsky2009}.
 The raw per-replicate metric records, aggregated analysis outputs and
 per-panel figure source data accompany this paper in the public
 repository.
@@ -889,10 +1112,10 @@ repository.
 \paragraph{Code availability}
 All training, analysis and figure scripts, together with the raw results,
 are available at \url{https://github.com/43aquarius/IJMLC} (release
-\texttt{paper-v2.0.0}).
+\texttt{paper-v3.0.0}).
 
 % ─────────────────────────────── references ───────────────────────────────
-\begin{thebibliography}{22}
+\begin{thebibliography}{24}
 \small
 \setlength{\itemsep}{1pt}
 
@@ -900,9 +1123,17 @@ are available at \url{https://github.com/43aquarius/IJMLC} (release
 uncertainty quantification in deep learning: techniques, applications and
 challenges. Information Fusion \textbf{76}, 243--297 (2021)
 
+\bibitem[Ajroldi et~al.(2025)]{ajroldi2025} Ajroldi, N., Orvieto, A.,
+Geiping, J.: When, where and why to average weights? In: International
+Conference on Machine Learning (2025)
+
 \bibitem[Ashukha et~al.(2020)]{ashukha2020} Ashukha, A., et al.: Pitfalls
 of in-domain uncertainty estimation and ensembling. In: International
 Conference on Learning Representations (2020)
+
+\bibitem[Chirkova et~al.(2020)]{chirkova2020} Chirkova, N., Lobacheva,
+E., Vetrov, D.: Deep ensembles on a fixed memory budget: one wide network
+or several thinner ones? arXiv:2005.07292 (2020)
 
 \bibitem[Clanuwat et~al.(2018)]{clanuwat2018} Clanuwat, T., Bober-Irizar,
 M., Kitamoto, A., Lamb, A., Yamamoto, K., Ha, D.: Deep learning for
@@ -934,6 +1165,10 @@ get M for free. In: International Conference on Learning Representations
 D., Garipov, T., Vetrov, D., Wilson, A.G.: Averaging weights leads to wider
 optima and better generalization. In: Conference on Uncertainty in
 Artificial Intelligence (2018)
+
+\bibitem[Krizhevsky(2009)]{krizhevsky2009} Krizhevsky, A.: Learning
+multiple layers of features from tiny images. Technical Report, University
+of Toronto (2009)
 
 \bibitem[Lakshminarayanan et~al.(2017)]{lakshminarayanan2017}
 Lakshminarayanan, B., Pritzel, A., Blundell, C.: Simple and scalable
@@ -967,6 +1202,11 @@ Pattern Recognition (2015)
 trust your model's uncertainty? Evaluating predictive uncertainty under
 dataset shift. In: Advances in Neural Information Processing Systems,
 vol. 32 (2019)
+
+\bibitem[Thuy and Benoit(2024)]{thuy2024} Thuy, A., Benoit, D.F.: Fast and
+reliable uncertainty quantification with neural network ensembles for
+industrial image classification. Annals of Operations Research (2024).
+\url{https://doi.org/10.1007/s10479-024-06440-4}
 
 \bibitem[Welling and Teh(2011)]{welling2011} Welling, M., Teh, Y.W.:
 Bayesian learning via stochastic gradient Langevin dynamics. In:

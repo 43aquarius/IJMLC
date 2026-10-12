@@ -32,7 +32,8 @@ plt.rcParams.update({
     "pdf.fonttype": 42, "ps.fonttype": 42,
 })
 
-FIGDIR = "/home/z/my-project/figures"
+import paths
+FIGDIR = paths.FIGURES
 SDIR = f"{FIGDIR}/source_data"
 os.makedirs(SDIR, exist_ok=True)
 
@@ -46,7 +47,7 @@ CONDS = ["single", "deepens", "snapshot", "swa"]
 # ----------------------------------------------------------------- data
 def load(tag):
     rows = []
-    for fn in glob.glob(f"/home/z/my-project/results/v2/experiment_v2_{tag}*.jsonl"):
+    for fn in glob.glob(os.path.join(paths.RESULTS, "v2", f"experiment_v2_{tag}*.jsonl")):
         for line in open(fn):
             rows.append(json.loads(line))
     rows.sort(key=lambda r: r["seed"])

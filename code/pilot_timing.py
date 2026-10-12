@@ -9,7 +9,7 @@ import json
 import sys
 import time
 
-sys.path.insert(0, "/home/z/my-project/scripts")
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from common import TrainConfig, train_run, load_splits, logits_of, probs_of
 import torch.nn.functional as F
 import torch

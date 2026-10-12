@@ -4,8 +4,9 @@
 # Priority: E-A fmnist B60 k3 -> E-B mnist B60 k3 -> E-C fmnist B30 k3
 #           -> E-E fmnist B60 k5 -> E-D fmnist B120 k3
 BUDGET=${1:-540}
-ST=/home/z/my-project/scripts
-OUT=/home/z/my-project/results/v2
+ST="$(cd "$(dirname "$0")" && pwd)"
+ROOT="$(cd "$ST/.." && pwd)"
+OUT="$ROOT/results/v2"
 mkdir -p $OUT
 cd $ST
 

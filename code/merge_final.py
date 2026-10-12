@@ -6,10 +6,11 @@ A4_W, A4_H = 595.28, 841.89  # A4 in points
 
 
 writer = PdfWriter()
-cover_page = PdfReader("/home/z/my-project/paper/cover.pdf").pages[0]
+import paths
+cover_page = PdfReader(os.path.join(paths.ROOT, "paper", "cover.pdf")).pages[0]
 cover_page.scale_to(A4_W, A4_H)  # always normalize (QA tolerance is strict)
 writer.add_page(cover_page)
-for page in PdfReader("/home/z/my-project/paper/main.pdf").pages:
+for page in PdfReader(os.path.join(paths.ROOT, "paper", "main.pdf")).pages:
     page.scale_to(A4_W, A4_H)
     writer.add_page(page)
 
@@ -22,6 +23,6 @@ writer.add_metadata({
     "/Keywords": "deep ensembles, snapshot ensembles, stochastic weight averaging, "
                  "calibration, uncertainty quantification, budget-matched evaluation",
 })
-with open("/home/z/my-project/paper/final.pdf", "wb") as f:
+with open(os.path.join(paths.ROOT, "paper", "final.pdf"), "wb") as f:
     writer.write(f)
 print("merged -> final.pdf, pages:", len(writer.pages))

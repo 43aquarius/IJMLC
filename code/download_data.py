@@ -9,11 +9,15 @@ IDX format: big-endian int32 header + unsigned byte payload.
 import gzip
 import os
 import struct
+import sys
 import urllib.request
 
 import numpy as np
 
-OUT = "/home/z/my-project/results/data"
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import paths
+
+OUT = paths.DATA
 os.makedirs(OUT, exist_ok=True)
 
 SOURCES = {

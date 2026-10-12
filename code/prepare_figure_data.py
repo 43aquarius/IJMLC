@@ -4,8 +4,9 @@ import json
 
 import numpy as np
 
-ROWS = [json.loads(l) for l in open("/home/z/my-project/results/experiment.jsonl")]
-SD = [json.loads(l) for l in open("/home/z/my-project/results/experiment_swa_dense.jsonl")]
+import paths
+ROWS = [json.loads(l) for l in open(os.path.join(paths.RESULTS, "experiment.jsonl"))]
+SD = [json.loads(l) for l in open(os.path.join(paths.RESULTS, "experiment_swa_dense.jsonl"))]
 CONDS = ["single", "deepens", "snapshot", "swa"]
 
 
@@ -65,7 +66,7 @@ for name in ["single", "cyclic"]:
                     epochs=list(range(1, H.shape[1] + 1)))
 out["learning_curves"] = lc
 
-with open("/home/z/my-project/results/figure_data.json", "w") as f:
+with open(os.path.join(paths.RESULTS, "figure_data.json"), "w") as f:
     json.dump(out, f)
 print("figure_data.json written;",
       "reliability bins:", len(rel["single"]["bin_acc"]),
