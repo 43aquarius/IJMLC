@@ -45,37 +45,34 @@ budgets\thanks{Preprint prepared for submission
 to the International Journal of Machine Learning and Cybernetics.}}
 \author{Chang Tan\thanks{Corresponding author: aquars43@foxmail.com}\,%
 \thanks{Dalian University of Technology, Dalian, China.}}
-\date{12 October 2026}
+\date{13 October 2026}
 \maketitle
 
 \begin{abstract}
-\noindent Practitioners who need calibrated predictive uncertainty face a fixed
-training budget, yet method comparisons typically let every method train
-until it stops improving; we ask how the budget should be spent. Under an identical budget of 60 SGD epochs we compared four
-allocation strategies for a multilayer perceptron on Fashion-MNIST: one
-long-trained network (\single); three independently restarted 20-epoch
-networks combined by prediction averaging (\deepens); three cycle-end
-snapshots of one cyclic-learning-rate run (\snapshot); and the uniform
-weight average of those same snapshots (\swa). Across ten seeded
-replications, every strategy improved test negative log-likelihood (NLL)
-over \single{} (Holm-adjusted exact permutation $P=0.0098$), with the
-ordering \deepens{} $>$ \snapshot{} $>$ \swa{} $>$ \single{} on NLL and
-calibration error. This ordering was robust across budgets (30, 60, 120
-epochs), ensemble sizes ($k=3$, $5$), a reversed dataset direction (MNIST
-in-distribution, where only \deepens{} separated from \single{},
-$\Delta$NLL $=-0.016$) and, in a post-hoc extension, a small convolutional
-network on CIFAR-10; secondary metrics showed bounded exceptions at the
-lowest budget. Only prediction averaging improved out-of-distribution (OOD)
-detection, on both probes and in both directions; \swa{} showed no
-improvement surviving multiple-comparison correction. Post-hoc temperature
-scaling fitted per condition on validation data repaired much of every
-condition's miscalibration yet left the budget-split ensemble significantly
-best at the core budget and above (NLL 0.289 versus 0.333 for calibrated
-\single{}), while largely equalising the ensemble strategies at the lowest
-budget. The evidence is bounded to small networks and small-scale image
-tasks, but within that regime it supports a simple rule where calibration
-headroom exists: split a fixed budget across independent restarts rather
-than extending training or averaging weights.
+\noindent Practitioners needing calibrated predictive uncertainty face a fixed
+training budget, yet method comparisons typically train each method to
+convergence; we ask how to spend it. Under an identical 60-epoch SGD budget we compared four allocation
+strategies for a multilayer perceptron on Fashion-MNIST: one long-trained network
+(\single); three independently restarted 20-epoch networks averaged by
+prediction (\deepens); three cycle-end snapshots of one cyclic run (\snapshot); and their uniform weight average
+(\swa). Across ten replications, every strategy improved test
+negative log-likelihood (NLL) over \single{} (Holm $P=0.0098$),
+with the ordering \deepens{} $>$ \snapshot{} $>$ \swa{} $>$ \single{} on
+NLL and calibration error. The ordering was robust across budgets
+(30--120 epochs), ensemble sizes ($k=3$, $5$), a reversed dataset
+direction (MNIST in-distribution, where only \deepens{} separated from
+\single{}) and, post-hoc, a small convolutional network on CIFAR-10, with bounded exceptions at the lowest budget. In
+out-of-distribution (OOD) detection, prediction averaging improved over
+\single{} on every probe and direction with the largest gains; weight averaging of the identical checkpoints showed smaller,
+task-dependent effects ($-0.016$ to $+0.025$), significant on some
+settings, reversed on one. Per-condition post-hoc temperature scaling
+repaired much of every condition's miscalibration yet left the
+budget-split ensemble significantly best at the core budget and above
+(NLL 0.289 vs 0.333 calibrated \single{}), while largely
+equalising the ensembles at the lowest budget. Evidence is bounded to small networks and small-scale image tasks, but there it
+supports a simple rule where calibration headroom exists:
+split the budget across independent restarts rather than extending
+training or averaging weights.
 \end{abstract}
 
 \vspace{2pt}
@@ -168,13 +165,16 @@ requires---headroom for longer training to damage calibration
 (Sect.~\ref{sec:results-robust}).
 \item \textbf{A separation of combination mechanisms under shift.} Averaging
 predictions improved OOD detection on every probe--direction combination,
-while averaging the same weights showed no improvement surviving
-multiplicity correction (Sect.~\ref{sec:results-ood}).
+with the largest and most consistent gains; averaging the same weights
+showed small, task-dependent effects---significant on some probes and
+budgets, absent or reversed on others
+(Sect.~\ref{sec:results-ood}).
 \item \textbf{A post-hoc recalibration stress test.} Temperature scaling
 fitted per condition compressed in-distribution differences but did not
-close them at the core budget or above, and left OOD detection essentially
-unchanged; at the lowest budget it largely equalised the ensemble
-strategies (Sect.~\ref{sec:results-ts}).
+close them at the core budget or above; it shifted OOD detection only
+slightly on the digit tasks (at most $+0.012$ AUROC) but more visibly on
+CIFAR-10 (up to $+0.026$), and at the lowest budget it largely equalised
+the ensemble strategies (Sect.~\ref{sec:results-ts}).
 \item \textbf{A cross-architecture replication.} The full ordering, the
 OOD separation and the member-level mechanism measurements replicate on a
 small convolutional network trained on CIFAR-10 with a natural-image shift
@@ -446,7 +446,15 @@ temperature-scaled analyses, and the CIFAR-10 cross-architecture
 replication were not part of the pre-registered plan and are labelled as
 such; each is analysed with the same machinery and its own Holm family over
 the same five contrasts on NLL, and the \ts{} family on \ts-NLL is likewise
-Holm-corrected. For the CIFAR replication the hypotheses and analysis plan
+Holm-corrected. OOD contrasts are secondary: their primary reporting is the
+uncorrected exact permutation $P$ (five contrasts per probe), as
+pre-specified. In addition, a post-hoc robustness analysis---defined after
+the CIFAR results were known, and labelled as such wherever it appears---
+applies Holm correction within each setting--probe--score family of five
+contrasts, mirroring the primary family structure, with a setting-level and
+a global sensitivity (Sect.~\ref{sec:results-ood}; Supplementary
+Table~S4). No OOD conclusion below rests on the choice among these
+families: all of them are reported for every strategy. For the CIFAR replication the hypotheses and analysis plan
 were fixed in writing before any test-set evaluation took place, but the
 setting itself is post-hoc. Sensitivity analyses (10-bin ECE, entropy-based
 AUROC score, dense \swa{}) were specified in advance or, for dense \swa{},
@@ -724,11 +732,20 @@ recalibratable distribution---at and beyond the core budget, averaging
 independent restarts yields information that a monotone rescaling of any
 single trajectory cannot recover---but at small budgets, where the single
 network is only mildly overconfident, post-hoc calibration is a genuine
-partial substitute. Second, recalibration bought nothing where the
-deployment risk lives: \ts{} changed OOD AUROC by at most $+0.012$ on any
-condition or probe (e.g.\ \single{} $0.7533 \rightarrow 0.7620$ on the
-MNIST probe, \deepens{} $0.8502 \rightarrow 0.8566$), leaving the
-between-strategy OOD differences intact (Sect.~\ref{sec:results-ood}).
+partial substitute. Second, on the digit tasks recalibration left the
+OOD results where they were: \ts{} changed OOD AUROC by at most $+0.012$
+on any condition or probe (e.g.\ \single{} $0.7533 \rightarrow 0.7620$ on
+the MNIST probe, \deepens{} $0.8502 \rightarrow 0.8566$), leaving the
+between-strategy differences intact. On CIFAR-10 the shifts were larger
+(\single{} $+0.026$, \swa{} $+0.019$, \snapshot{} $+0.017$, \deepens{}
+$+0.004$), compressing the \deepens$-$\single{} gap from $+0.069$ to
+$+0.046$ without reversing any ordering
+(Sect.~\ref{sec:results-ood}, \ref{sec:results-cifar}). This heterogeneity
+is expected in principle: temperature scaling transforms each sample's
+effective logits monotonically, but the maximum-softmax score it induces
+need not preserve the cross-sample ranking of the unscaled score, so its
+effect on confidence-based OOD separation is an empirical property of the
+condition and the shift rather than a guaranteed null.
 
 \begin{figure}[t]
 \centering
@@ -754,35 +771,50 @@ separation between in-distribution test images and each OOD probe using
 the maximum-softmax score (Fig.~\ref{fig:direction}b). In the core
 setting, \deepens{} improved AUROC by $+0.0969$ over \single{} on the MNIST
 probe (95\% CI $[+0.0847,+0.1091]$, $P=0.0020$) and by $+0.1097$
-($[+0.1004,+0.1190]$) on the KMNIST probe, whereas \swa{} showed no
-improvement that survives correction for multiplicity: $-0.0029$
-($[-0.0166,+0.0109]$) on the MNIST probe ($P=0.64$) and a small,
-order-of-magnitude-smaller effect on KMNIST ($+0.0112$,
-$[+0.0023,+0.0202]$, $P=0.023$ uncorrected; OOD contrasts are secondary
-and reported uncorrected throughout---five contrasts per probe, so
+($[+0.1004,+0.1190]$) on the KMNIST probe, whereas \swa{}'s effects were
+an order of magnitude smaller and inconsistent across probes: $-0.0029$
+($[-0.0166,+0.0109]$) on the MNIST probe ($P=0.64$) and $+0.0112$
+($[+0.0023,+0.0202]$) on KMNIST ($P=0.023$; OOD contrasts are secondary and
+their primary reporting is uncorrected---five contrasts per probe, so
 uncorrected $P$ values near 0.05 should be read cautiously). \snapshot{} occupied an intermediate
 position ($+0.0423$ and $+0.0585$ respectively). Because \snapshot{} and
 \swa{} combine the identical three checkpoints, this difference is
 attributable to the combination mechanism alone: averaging predictions
 transfers the members' ability to disagree on shifted inputs into the
 score, while averaging weights collapses the members into one network
-whose confidence behaviour under shift is essentially that of the
-trajectory it came from. We note that the width of the \swa{} interval
+that recovers only part of that transferred signal, and how large that
+part is varies with the task and the shift
+(Sect.~\ref{sec:results-cifar}). We note that the width of the \swa{} interval
 (about $0.028$ AUROC units) bounds what this design can resolve; the claim
 is one of absence of evidence at this precision, not of evidence of
 absence.
 
-The pattern generalised across probes and directions. Across the four
-combinations of in-distribution task and OOD probe, \deepens{} gave the
-best OOD detection and was the only strategy whose improvement over
-\single{} was significant on every combination (in the MNIST direction:
-$+0.0139$, $P=0.008$, and $+0.0235$, $P=0.002$, uncorrected as above);
-the single-trajectory strategies were statistically indistinguishable from
-\single{} on both probes of the MNIST direction ($P \geq 0.08$). The same
-pattern held with the negative-entropy score, so the conclusion is not
-specific to the score function, and the exploratory dense \swa{} variant
-(40-checkpoint average) likewise left OOD detection unchanged
-(Supplementary Table~S2).
+The pattern generalised across probes and directions, and the extension
+settings let us state it over all eleven combinations of setting and probe
+(Supplementary Table~S4). Prediction averaging improved detection
+everywhere: \deepens{} attained the best mean detection on every
+combination, and its improvement over \single{} was the only one
+significant on all eleven within each probe's five-contrast family
+(Holm-adjusted $P \leq 0.031$; in the MNIST direction: $+0.0139$,
+$P=0.008$, and $+0.0235$, $P=0.002$, uncorrected as above).
+\snapshot{} was significant on nine of eleven combinations, failing only
+in the MNIST direction. Weight averaging, in contrast, was small and
+inconsistent: its \swa$-$\single{} effects ranged from $-0.016$ to
+$+0.025$, significantly positive on five combinations (including the core
+setting's KMNIST probe, $+0.0112$, adjusted $P=0.023$, and both probes at
+$B=30$), significantly negative on one ($-0.016$ on the MNIST probe at
+$B=120$, adjusted $P=0.012$), and null on the remaining five; on CIFAR-10
+it retained roughly a third of \deepens{}'s gain
+(Sect.~\ref{sec:results-cifar}). Under the most conservative global
+family---all 55 MSP contrasts across settings and probes---no OOD contrast
+survives, \deepens{} included, because the per-test resolution floor
+($0.0020$) times the family size exceeds $0.05$; the OOD conclusions
+therefore rest on effect size and cross-setting consistency rather than
+on any single global threshold. The same pattern held with the
+negative-entropy score (\swa{} effects $-0.015$ to $+0.031$), so the
+conclusion is not specific to the score function, and the exploratory
+dense \swa{} variant (40-checkpoint average) likewise left OOD detection
+unchanged from \single{} (Supplementary Table~S2).
 
 \begin{figure}[t]
 \centering
@@ -795,7 +827,7 @@ network (Holm-adjusted $P=0.0098$; the single-trajectory strategies are
 not significant, $P=0.41$). \textbf{b}, OOD-detection AUROC (MSP score)
 for the four conditions across all four in-distribution$\to$probe
 combinations (small dots: ten replicates; large markers: condition means).
-\deepens{} is best on every combination; \swa{} tracks \single{}
+\deepens{} is best on every combination; \swa{} stays closest to \single{}
 throughout. The dotted line marks chance.}
 \label{fig:direction}
 \end{figure}
@@ -849,16 +881,22 @@ All five contrasts were significant after Holm adjustment within the
 setting's family (all adjusted $P=0.0098$); the budget-split advantage
 ($-1.2889$ NLL, 95\% CI $[-1.3432,-1.2345]$) was several times larger than the
 Fashion-MNIST core effect ($-0.2245$), and the pattern extended to every
-in-distribution metric, including accuracy (\deepens{} $-$ \single{} $+0.0699$
-$[+0.0627,+0.0772]$) and ECE (Table~\ref{tab:cifar}). Under the
+in-distribution metric in means, including accuracy (\deepens{} $-$ \single{} $+0.0699$
+$[+0.0627,+0.0772]$) and ECE (Table~\ref{tab:cifar}); on ECE, however, the
+\deepens$-$\snapshot{} contrast was directionally consistent with the digit
+tasks but not statistically resolved at $n=10$ ($-0.0418$,
+$[-0.0845,+0.0008]$, uncorrected $P=0.082$; see the anomalous replicate
+below), whereas \deepens$-$\single{} on ECE was significant ($-0.1805$,
+$P=0.0020$). Under the
 natural-image shift probe (CIFAR-100), the checkpoint-matched separation
 replicated: prediction averaging improved OOD detection over \single{}
 (\deepens{} $+0.0689$ $[+0.0635,+0.0743]$, \snapshot{} $+0.0393$), whereas
 weight averaging of the identical checkpoints improved detection by less
-($+0.0247$ $[+0.0224,+0.0269]$, uncorrected $P=0.002$): unlike on the digit
-tasks, this effect is significant before correction, but it amounts to
-roughly two-thirds of \snapshot{}'s improvement and one-third of
-\deepens{}'s.
+($+0.0247$ $[+0.0224,+0.0269]$, uncorrected $P=0.002$, Holm-adjusted
+$P=0.0098$ within the probe's family)---roughly two-thirds of \snapshot{}'s
+improvement and one-third of \deepens{}'s. Weight averaging is therefore
+not without OOD value in every regime; its effect here is genuine but
+small relative to prediction averaging on the same checkpoints.
 Per-condition temperature scaling again compressed but did not close the
 gap (\deepens{} $-$ \single{} on \ts-NLL $-0.1827$, adjusted $P=0.0098$), and the
 mechanism measurements pointed the same way as on Fashion-MNIST: restart
@@ -869,7 +907,33 @@ temperatures mirrored the overconfidence ordering
 (\single{} 4.23, \swa{} 2.30, \snapshot{} 1.88, \deepens{} 1.14). As a replication, this
 extension changes no claims' direction; it strengthens their external
 validity by one architecture family and one natural-image dataset with a
-semantically richer shift probe. One of the ten replicates reversed the \deepens{}--\snapshot{} ordering at seed level; the paired contrast remains significant across seeds and the confidence interval above reflects that variability.
+semantically richer shift probe.
+
+One of the ten replicates reversed the \deepens{}--\snapshot{} ordering at
+seed level, and its cause is instructive. One of that replicate's two fresh
+restarts collapsed within its first epoch to near-uniform predictions
+(training loss at the $\ln 10$ level from epoch 1 onward, output logits
+decaying to zero, accuracy near chance) and never recovered---an instance
+of restart failure under the aggressive no-normalisation learning rate,
+unique among the twenty fresh restarts of this extension. The event is
+transparent in the released per-replicate records (member mean accuracy
+0.515, ensemble NLL 0.929, ECE 0.210) and was verified by a deterministic
+re-run of the three members with per-epoch logging; the shared first
+member and the cyclic trajectory reproduce bit-identically, so the collapse
+is a property of that restart's initialisation and schedule, not of the
+data pipeline or the evaluation code. The replicate is retained in all
+analyses, in line with the pre-specified no-exclusion rule; with it
+included, every primary contrast remains significant, and a
+leave-one-replicate-out sensitivity shows that dropping it strengthens
+the \deepens$-$\snapshot{} contrasts (NLL $-0.2075$, ECE $-0.0607$, both
+$P = 0.0039$) while leaving every other conclusion unchanged. The
+ECE ordering over \snapshot{}---directionally consistent but unresolved
+with all ten replicates---becomes significant without it; we report both
+views and rest no claim on the exclusion. Restart failure of this kind is
+itself a property of the budget-split strategy at this scale that
+practitioners should weigh: a dead member degraded this replicate's
+calibration substantially, yet the ensemble still beat the long-trained
+\single{} network on NLL by a wide margin ($0.929$ versus $2.017$).
 
 \begin{figure}[t]
 \centering
@@ -925,7 +989,9 @@ convolutional architecture; a cyclic-schedule snapshot ensemble
 (\snapshot{}) captured most of the in-distribution benefit at one run's
 bookkeeping cost; and weight averaging (\swa{}) improved in-distribution
 metrics but, unlike either prediction-averaging strategy, showed no
-improvement in OOD detection that survived multiple-comparison correction.
+consistent OOD improvement: its effects ranged from $-0.016$ to $+0.025$
+across the eleven setting--probe combinations, significantly positive on
+some and significantly negative on one.
 Because the four conditions shared data, architecture, optimizer, budget and
 pairing by seed, and because \snapshot{} and \swa{} shared the identical
 checkpoints, these differences are attributable to the allocation of the
@@ -943,7 +1009,11 @@ averaging operates in parameter space: it selects a flatter, lower-loss
 point along the trajectory \citep{izmailov2018,wilson2020}, which improves
 the network's fit--confidence trade-off in distribution, but it collapses
 the members' disagreement into a single confident model and thereby
-discards the epistemic signal that the shift detector consumes. Consistent
+discards part of the epistemic signal that the shift detector consumes.
+How large the discarded part is varies with the regime: on the digit tasks
+it was essentially all of it, while on CIFAR-100 the weight average
+retained about a third of the prediction-averaging gain, so the size of
+the separation is itself task- and shift-dependent. Consistent
 with this reading, member-level analysis showed that continued-training
 snapshots are individually more overconfident than fresh restarts at equal
 accuracy, and less diverse from one another; the snapshot ensemble
@@ -973,10 +1043,13 @@ especially at small budgets where the \ts-adjusted strategies clustered
 within $0.014$ NLL of each other and the ensemble ordering itself was no
 longer significant; at the core budget and above, however, the
 calibrated budget-split ensemble remained significantly better than
-every calibrated alternative. Under shift, temperature scaling bought
-nothing---it changes confidence levels, not their ranking across
-inputs---so the OOD advantage of prediction averaging cannot be recovered
-post hoc. This refines the classical observation that ensembles remain
+every calibrated alternative. Under shift, temperature scaling left
+detection essentially unchanged on the digit tasks (at most $+0.012$
+AUROC) but shifted it more visibly on CIFAR-10 (up to $+0.026$, in
+\single{}'s favour): it is not a rank-preserving transformation of
+confidence scores in general, so its effect on a deployment that
+consumes such scores should be checked directly rather than assumed null.
+This refines the classical observation that ensembles remain
 better calibrated than recalibrated single models
 \citep{lakshminarayanan2017,guo2017,zhang2020}: in the budget-matched
 regime, what post-hoc calibration cannot buy is precisely the
@@ -1001,7 +1074,8 @@ is not three times as expensive as one 60-epoch run; it \emph{is} the same
 budget spent differently. Under that accounting, the ``expensive''
 strategy was uniformly best in this regime, the ``free'' strategies
 captured different fractions of its benefit, and the cheapest-to-deploy
-single-trajectory variant (\swa{}) bought no shift robustness. This
+single-trajectory variant (\swa{}) bought little and inconsistent shift
+robustness ($-0.016$ to $+0.025$ across settings and probes). This
 complements benchmark studies that vary budgets across methods
 \citep{ovadia2019,ashukha2020} and echoes the observation that
 independent initialisation is the ingredient most responsible for
@@ -1013,13 +1087,16 @@ small scale and fixed compute, prefer independent restarts over longer
 training for calibrated uncertainty, provided the long-trained baseline is
 in fact overconfident. If only a single trajectory is affordable,
 prefer its snapshot ensemble over its weight average when shift robustness
-matters, and apply temperature scaling regardless: it is nearly free,
-repairs in-distribution overconfidence, and does no harm to shift
-detection. Budget for the inference side as well: prediction averaging
+matters. Apply temperature scaling for its in-distribution benefit: it is
+nearly free and repaired overconfidence in every condition here, but its
+effect on confidence-based shift scores was small and not guaranteed null
+in general (up to $+0.026$ AUROC on CIFAR-10), so verify it in the target
+shift setting. Budget for the inference side as well: prediction averaging
 costs $k$ forward passes per query, whereas \single{} and \swa{} cost one,
 so at high query volume the cheapest calibrated option may be a
 temperature-scaled single-trajectory model rather than an ensemble. Treat
-\swa{} as an accuracy-and-fit tool rather than a shift detector, consistent
+\swa{} primarily as an accuracy-and-fit tool rather than a reliable shift
+detector, consistent
 with evidence that OOD failures often persist across training procedures
 \citep{hendrycks2017,nguyen2015}. The rule is
 bounded by the scope of the evidence, which we summarise in
@@ -1053,13 +1130,21 @@ flexible calibrators \citep{zhang2020} could in principle compress the
 in-distribution gaps further. The OOD probes are dataset-level shifts
 between tasks of the same modality, evaluated with confidence-based
 scores; no corruptions, adversarial perturbations or likelihood-based
-methods were considered. The CIFAR-10 replication, the budget sweep beyond
+methods were considered. The OOD multiplicity families of
+Sect.~\ref{sec:results-ood} are post-hoc robustness analyses, defined after
+the CIFAR results were known, and are reported at several family sizes so
+that no conclusion depends on the choice; the pre-specified corrections
+cover the NLL and \ts-NLL families only. The CIFAR-10 replication, the budget sweep beyond
 $k=3$-at-$B=60$ and all other extensions are post-hoc analyses, labelled
 as such throughout, and their statistical corrections do not carry the
 pre-registered status of the core setting. Finally, the mechanism analysis
 is associational by design; a causal decomposition of the ensemble gain into
 member-quality and diversity components would require interventions on
-each ingredient separately.
+each ingredient separately. One fresh restart of the CIFAR extension
+collapsed to near-uniform predictions (Sect.~\ref{sec:results-cifar});
+restart-failure rates at other scales and with normalisation layers are
+unknown, and the ensemble's tolerance of such failures deserves separate
+study.
 
 % ─────────────────────────────── 7 conclusion ───────────────────────────────
 \section{Conclusion}\label{sec:conclusion}
@@ -1075,10 +1160,11 @@ grew with the budget and survived per-condition temperature scaling at the
 core budget and above, while secondary metrics showed bounded exceptions at
 the lowest budget. Single-trajectory strategies captured part of the
 benefit on tasks with calibration headroom and none of it on a saturated
-task. Only prediction averaging improved out-of-distribution detection, on
-every probe and direction tested, while weight averaging of the same
-checkpoints showed no improvement surviving multiple-comparison
-correction. The paired, seed-replicated, checkpoint-matched template used
+task. Prediction averaging improved out-of-distribution detection on
+every probe and direction tested, with the largest gains, while weight
+averaging of the same checkpoints showed small, task-dependent effects
+that ranged from significantly negative to significantly positive. The
+paired, seed-replicated, checkpoint-matched template used
 here is directly reusable for larger networks, harder shifts and richer
 recalibration families, and we release all code and raw records to make
 such extensions cheap. In the regimes we measured, the practical answer to
@@ -1380,6 +1466,65 @@ Setting & Contrast on \ts-NLL & $\Delta$ & 95\% CI & $P_{\text{Holm}}$ \\
 \multirow{2}{*}{\shortstack[l]{MNIST, $B{=}60$, $k{=}3$}}
  & \deepens{} & $-0.0071$ & $[-0.0085, -0.0057]$ & $0.0098$ \\
  & \snapshot{} & $-0.0016$ & $[-0.0032, -0.0001]$ & $0.0625$ (n.s.) \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+
+\begin{table}[htbp]
+\centering
+\caption{\textbf{Supplementary Table S4 | OOD-detection contrasts
+(maximum-softmax AUROC) versus \single{} across all settings and probes}
+(mean paired difference $\Delta$, 95\% CI, exact permutation $P$, and
+Holm-adjusted $P$ within each setting--probe family of five contrasts;
+$n=10$ replicates each). The Holm column is a \emph{post-hoc} robustness
+analysis, defined after the CIFAR results were known; the pre-specified
+primary reporting for OOD is the uncorrected exact $P$. With the
+negative-entropy score the pattern is the same (strategy--versus-\single{}
+effects: \deepens{} $+0.013$ to $+0.123$, \snapshot{} $+0.003$ to
+$+0.075$, \swa{} $-0.015$ to $+0.031$). Under a global family of all 55
+MSP contrasts no contrast survives (per-test floor $0.0020 \times 55$),
+\deepens{} included; conclusions therefore rest on effect size and
+cross-setting consistency.}
+\label{tab:supp4}
+\footnotesize
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}} llcccc}
+\toprule
+Setting, probe & Contrast & $\Delta$ AUROC & 95\% CI & $P_{\text{perm}}$ & $P_{\text{Holm}}$ \\
+\midrule
+\multirow{3}{*}{\shortstack[l]{Fashion-MNIST, $B{=}60$, $k{=}3$ (core)\\ KMNIST probe}} & \deepens{}$-$\single{} & $+0.1097$ & $[+0.1004,+0.1190]$ & 0.0020 & 0.0098 \\
+ & \snapshot{}$-$\single{} & $+0.0585$ & $[+0.0508,+0.0663]$ & 0.0020 & 0.0098 \\
+ & \swa{}$-$\single{} & $+0.0112$ & $[+0.0023,+0.0202]$ & 0.0234 & 0.0234 \\
+\multirow{3}{*}{\shortstack[l]{Fashion-MNIST, $B{=}60$, $k{=}3$ (core)\\ MNIST probe}} & \deepens{}$-$\single{} & $+0.0969$ & $[+0.0847,+0.1091]$ & 0.0020 & 0.0098 \\
+ & \snapshot{}$-$\single{} & $+0.0423$ & $[+0.0291,+0.0555]$ & 0.0020 & 0.0098 \\
+ & \swa{}$-$\single{} & $-0.0029$ & $[-0.0166,+0.0109]$ & 0.6406 & 0.6406 \\
+\multirow{3}{*}{\shortstack[l]{Fashion-MNIST, $B{=}30$, $k{=}3$\\ KMNIST probe}} & \deepens{}$-$\single{} & $+0.0799$ & $[+0.0730,+0.0868]$ & 0.0020 & 0.0098 \\
+ & \snapshot{}$-$\single{} & $+0.0447$ & $[+0.0369,+0.0525]$ & 0.0020 & 0.0098 \\
+ & \swa{}$-$\single{} & $+0.0103$ & $[+0.0039,+0.0167]$ & 0.0078 & 0.0098 \\
+\multirow{3}{*}{\shortstack[l]{Fashion-MNIST, $B{=}30$, $k{=}3$\\ MNIST probe}} & \deepens{}$-$\single{} & $+0.0974$ & $[+0.0876,+0.1072]$ & 0.0020 & 0.0098 \\
+ & \snapshot{}$-$\single{} & $+0.0520$ & $[+0.0407,+0.0632]$ & 0.0020 & 0.0098 \\
+ & \swa{}$-$\single{} & $+0.0176$ & $[+0.0055,+0.0298]$ & 0.0078 & 0.0098 \\
+\multirow{3}{*}{\shortstack[l]{Fashion-MNIST, $B{=}120$, $k{=}3$\\ KMNIST probe}} & \deepens{}$-$\single{} & $+0.1205$ & $[+0.1117,+0.1293]$ & 0.0020 & 0.0098 \\
+ & \snapshot{}$-$\single{} & $+0.0577$ & $[+0.0480,+0.0674]$ & 0.0020 & 0.0098 \\
+ & \swa{}$-$\single{} & $+0.0058$ & $[-0.0028,+0.0145]$ & 0.1621 & 0.1621 \\
+\multirow{3}{*}{\shortstack[l]{Fashion-MNIST, $B{=}120$, $k{=}3$\\ MNIST probe}} & \deepens{}$-$\single{} & $+0.0847$ & $[+0.0724,+0.0970]$ & 0.0020 & 0.0098 \\
+ & \snapshot{}$-$\single{} & $+0.0288$ & $[+0.0189,+0.0387]$ & 0.0020 & 0.0098 \\
+ & \swa{}$-$\single{} & $-0.0157$ & $[-0.0259,-0.0055]$ & 0.0117 & 0.0117 \\
+\multirow{3}{*}{\shortstack[l]{Fashion-MNIST, $B{=}60$, $k{=}5$\\ KMNIST probe}} & \deepens{}$-$\single{} & $+0.1122$ & $[+0.1026,+0.1218]$ & 0.0020 & 0.0098 \\
+ & \snapshot{}$-$\single{} & $+0.0710$ & $[+0.0590,+0.0829]$ & 0.0020 & 0.0098 \\
+ & \swa{}$-$\single{} & $+0.0165$ & $[+0.0050,+0.0280]$ & 0.0117 & 0.0117 \\
+\multirow{3}{*}{\shortstack[l]{Fashion-MNIST, $B{=}60$, $k{=}5$\\ MNIST probe}} & \deepens{}$-$\single{} & $+0.1084$ & $[+0.0978,+0.1191]$ & 0.0020 & 0.0098 \\
+ & \snapshot{}$-$\single{} & $+0.0617$ & $[+0.0469,+0.0765]$ & 0.0020 & 0.0098 \\
+ & \swa{}$-$\single{} & $+0.0053$ & $[-0.0099,+0.0205]$ & 0.4473 & 0.4473 \\
+\multirow{3}{*}{\shortstack[l]{MNIST, $B{=}60$, $k{=}3$ (reversed)\\ Fashion-MNIST probe}} & \deepens{}$-$\single{} & $+0.0139$ & $[+0.0057,+0.0221]$ & 0.0078 & 0.0312 \\
+ & \snapshot{}$-$\single{} & $+0.0027$ & $[-0.0061,+0.0115]$ & 0.5039 & 1.0000 \\
+ & \swa{}$-$\single{} & $+0.0011$ & $[-0.0085,+0.0108]$ & 0.7363 & 1.0000 \\
+\multirow{3}{*}{\shortstack[l]{MNIST, $B{=}60$, $k{=}3$ (reversed)\\ KMNIST probe}} & \deepens{}$-$\single{} & $+0.0235$ & $[+0.0191,+0.0278]$ & 0.0020 & 0.0098 \\
+ & \snapshot{}$-$\single{} & $+0.0024$ & $[-0.0007,+0.0054]$ & 0.0898 & 0.1641 \\
+ & \swa{}$-$\single{} & $-0.0024$ & $[-0.0051,+0.0003]$ & 0.0820 & 0.1641 \\
+\multirow{3}{*}{\shortstack[l]{CIFAR-10, $B{=}60$, $k{=}3$ (post-hoc)\\ CIFAR-100 probe}} & \deepens{}$-$\single{} & $+0.0689$ & $[+0.0635,+0.0743]$ & 0.0020 & 0.0098 \\
+ & \snapshot{}$-$\single{} & $+0.0393$ & $[+0.0366,+0.0420]$ & 0.0020 & 0.0098 \\
+ & \swa{}$-$\single{} & $+0.0247$ & $[+0.0224,+0.0269]$ & 0.0020 & 0.0098 \\
 \bottomrule
 \end{tabular*}
 \end{table}

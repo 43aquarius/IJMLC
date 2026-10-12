@@ -81,5 +81,7 @@ for k, v in out.items():
 print("train class counts:", np.bincount(tr_y))
 print("test  class counts:", np.bincount(te_y))
 print("c100 fine labels in [0,100):", c100_y.min(), c100_y.max())
-chan = tr_x.astype(np.float32).mean(axis=(0, 1, 2)) / 255.0
+# NOTE: must aggregate in float64 -- a float32 accumulation over 5e7 elements
+# drifts catastrophically (prints ~0.329 per channel although the data are correct).
+chan = tr_x.astype(np.float64).mean(axis=(0, 1, 2)) / 255.0
 print("per-channel means (want ~0.4914 0.4822 0.4465):", np.round(chan, 4))

@@ -1,10 +1,10 @@
 # Deep Ensembles vs. Snapshot Ensembles and Weight Averaging for Calibrated Uncertainty under Fixed Training Budgets
 
-Research artifacts for the manuscript ***"Deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty under fixed training budgets"*** (v3, prepared for the *International Journal of Machine Learning and Cybernetics*).
+Research artifacts for the manuscript ***"Deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty under fixed training budgets"*** (v4, prepared for the *International Journal of Machine Learning and Cybernetics*).
 
 **Author:** Chang Tan (Dalian University of Technology) — corresponding: aquars43@foxmail.com
 
-> **One-sentence summary.** Under an identical training budget, splitting the budget across independently restarted networks (budget-split deep ensembles) yields better-calibrated uncertainty than extending single-model training, cycling the learning rate to harvest snapshots, or averaging the weights of those snapshots — an NLL/ECE ordering that is robust across budgets, ensemble sizes, dataset directions and (post-hoc) a convolutional architecture on CIFAR-10, survives per-condition temperature scaling at the core budget and above, and extends to out-of-distribution detection, where only prediction averaging helps.
+> **One-sentence summary.** Under an identical training budget, splitting the budget across independently restarted networks (budget-split deep ensembles) yields better-calibrated uncertainty than extending single-model training, cycling the learning rate to harvest snapshots, or averaging the weights of those snapshots — an NLL/ECE ordering that is robust across budgets, ensemble sizes, dataset directions and (post-hoc) a convolutional architecture on CIFAR-10, survives per-condition temperature scaling at the core budget and above, and extends to out-of-distribution detection, where prediction averaging gives the largest and most consistent gains while weight averaging's smaller effects are task-dependent.
 
 ---
 
@@ -38,8 +38,8 @@ Clean-by-construction contrasts: the first DeepEns member is bit-identical to th
 
 (The CIFAR row's exact values, CIs and tests are in `results/cifar/analysis_cifar.json`; the manuscript's Table 4 reports them in full.)
 
-- **OOD detection (MSP AUROC):** DeepEns is the only strategy that improves detection on all four in-distribution→probe combinations (Fashion-MNIST→MNIST +0.097, →KMNIST +0.110; MNIST→Fashion-MNIST +0.014, →KMNIST +0.024); SWA shows no improvement surviving multiplicity correction on any combination (core MNIST probe: −0.003, p=0.64).
-- **Temperature scaling** (fitted per condition on validation): repairs much of every condition's miscalibration (Single 0.527→0.333) but leaves DeepEns significantly best at the core budget and above, and changes OOD AUROC by at most +0.012; at B=30 it largely equalises the ensemble strategies.
+- **OOD detection (MSP AUROC):** DeepEns improves detection on every one of the eleven setting→probe combinations (per-probe Holm-adjusted P ≤ 0.031; e.g. core Fashion-MNIST→MNIST +0.097, →KMNIST +0.110; CIFAR-100 +0.069); Snapshot on 9/11; SWA's effects are smaller and task-dependent (−0.016 to +0.025: significantly positive on 5 combinations incl. CIFAR-100 +0.025, significantly negative on one at B=120, null elsewhere). Full table: paper Supplementary Table S4 / `research-docs/ood-ts-statistics-v4.md`.
+- **Temperature scaling** (fitted per condition on validation): repairs much of every condition's miscalibration (Single 0.527→0.333) but leaves DeepEns significantly best at the core budget and above; it shifts OOD AUROC by at most +0.012 on the digit tasks and up to +0.026 on CIFAR-10 (TS is not rank-preserving across samples in general); at B=30 it largely equalises the ensemble strategies.
 - **Mechanism:** budget-split members are better calibrated (member NLL 0.338 vs 0.404) *and* more diverse (JSD 0.0150 vs 0.0106) than continued-training snapshots; both replicate on CIFAR-10.
 - **Inference cost is not matched** by design: prediction averaging costs k forward passes per query, Single/SWA cost one (see the paper's Methods §3.1).
 
@@ -122,6 +122,7 @@ All scripts resolve paths relative to the repository root (override with the
 
 ## 8. Version History
 
+- **v4.0.0 (13 Oct 2026):** final pre-submission audit and scope corrections. OOD claims rewritten from the categorical "only prediction averaging helps" to the comparative, heterogeneity-reporting form backed by a fully defined post-hoc multiplicity framework (per-probe Holm families + setting-level + global sensitivity; new Supplementary Table S4 with all eleven setting→probe combinations); temperature-scaling OOD claim corrected (digit tasks ≤ +0.012; CIFAR-10 up to +0.026; "ranking-invariant" theory statement removed); CIFAR DeepEns−Snapshot ECE contrast reported as directionally consistent but statistically unresolved (P=0.082); anomalous CIFAR replicate diagnosed (one fresh restart collapsed to uniform predictions in epoch 1 — deterministic re-run) and retained under the no-exclusion rule with leave-one-out sensitivity; `download_data_cifar.py` integrity-check float32 accumulation bug fixed (stored data verified correct in float64); v4 research documents (audit, claim–evidence matrix, OOD/TS statistics report, anomalous-seed report, revision log, submission checklist) and `results/v4/` independent re-analysis released.
 - **v3.0.0 (12 Oct 2026):** cross-architecture replication on CIFAR-10 (small CNN, post-hoc-labelled); scope-corrected title and claims (NLL/ECE ordering; B=30 secondary-metric and TS exceptions reported); four-dimension cost accounting (training vs wall-clock vs inference vs deployment); 2024–2025 literature re-check with three new verified references; path-independent code (clean-clone reproduction gate: 110/110 bit-identical); torchvision-free data pipeline.
 - **v2.0.0 (11 Oct 2026):** IJMLC-format rewrite; adds budget sweep (30/120), ensemble size k=5, reversed MNIST direction, KMNIST second OOD probe, per-condition temperature scaling; author-year citations; Declarations incl. AI-use disclosure.
 - **v1.0.0 (22 Sep 2026):** pre-registered core experiment (Fashion-MNIST, B=60, k=3, 10 seeds) with SWA-dense exploratory variant. Available under the `paper-v1.0.0` release tag.
