@@ -6,6 +6,7 @@ vector PDF primary export + 600 dpi PNG preview, 183 mm main / 120 mm suppl.
 All seed-level observations are shown (no aggregate-only displays).
 """
 import json
+import os
 
 import matplotlib
 matplotlib.use("Agg")
@@ -220,7 +221,9 @@ for j, c in enumerate(CONDS):
 save(fig, "suppl_fig2_msp_hist")
 
 # ============================================================================= Suppl 3: SWA-dense
-fig, axes = plt.subplots(1, 2, figsize=(4.7, 2.3), constrained_layout=True)
+# v4.1.1: widened from (4.7, 2.3) to (7.2, 2.4) so the five x-axis method
+# labels fit horizontally without overlap; label rotation no longer needed.
+fig, axes = plt.subplots(1, 2, figsize=(7.2, 2.4), constrained_layout=True)
 conds5 = CONDS + ["swa_dense"]
 data_nll = {c: D["seeds_nll"][c] for c in CONDS}
 data_nll["swa_dense"] = D["seeds_swa_dense"]["nll"]
@@ -232,7 +235,6 @@ axes[0].set_title("NLL", fontsize=7)
 paired_dot(axes[1], "auroc_msp", "AUROC (MSP)", conds=conds5,
             lbls=[LBL[c] for c in conds5], data=data_auc)
 axes[1].set_title("OOD AUROC", fontsize=7)
-axes[1].tick_params(axis="x", labelrotation=30)
 for ax, letter in zip(axes, ["a", "b"]):
     ax.text(-0.28, 1.12, letter, transform=ax.transAxes, fontsize=9,
             fontweight="bold", va="top")
