@@ -1,10 +1,14 @@
 # Deep Ensembles vs. Snapshot Ensembles and Weight Averaging for Calibrated Uncertainty under Fixed Training Budgets
 
-Research artifacts for the manuscript ***"Deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty under fixed training budgets"*** (v4, prepared for the *International Journal of Machine Learning and Cybernetics*).
+Research artifacts for the manuscript ***"Deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty under fixed training budgets"*** (v4.1, prepared for the *International Journal of Machine Learning and Cybernetics*).
 
 **Author:** Chang Tan (Dalian University of Technology) — corresponding: aquars43@foxmail.com
 
-> **One-sentence summary.** Under an identical training budget, splitting the budget across independently restarted networks (budget-split deep ensembles) yields better-calibrated uncertainty than extending single-model training, cycling the learning rate to harvest snapshots, or averaging the weights of those snapshots — an NLL/ECE ordering that is robust across budgets, ensemble sizes, dataset directions and (post-hoc) a convolutional architecture on CIFAR-10, survives per-condition temperature scaling at the core budget and above, and extends to out-of-distribution detection, where prediction averaging gives the largest and most consistent gains while weight averaging's smaller effects are task-dependent.
+> **One-sentence summary.** Under an identical training budget, splitting the budget across independently restarted networks (budget-split deep ensembles) yields better-calibrated uncertainty than extending single-model training, cycling the learning rate to harvest snapshots, or averaging the weights of those snapshots — the four-way ordering holds on test NLL across budgets, ensemble sizes and (post-hoc) a convolutional architecture on CIFAR-10, survives per-condition temperature scaling at the core budget and above, and carries to out-of-distribution detection, where prediction averaging gives the largest and most consistent gains while weight averaging's smaller effects are task-dependent (on the near-saturated MNIST task only the budget-split ensemble separates from the single network; the CIFAR DeepEns–Snapshot advantage in calibration error is directionally consistent but not statistically resolved at n=10).
+
+> **Manuscript PDFs** are published as release assets only (see the
+> [releases page](https://github.com/43aquarius/IJMLC/releases)); this
+> repository carries the source, data, code and research trail.
 
 ---
 
@@ -23,7 +27,7 @@ Under an identical total budget of **B SGD epochs**, four allocation strategies 
 | **Snapshot** | 1 run × B epochs, k cyclic-LR cycles | prediction averaging of k cycle-end snapshots |
 | **SWA** | the same k checkpoints | uniform weight averaging |
 
-Clean-by-construction contrasts: the first DeepEns member is bit-identical to the first cyclic snapshot (verified in every setting), and Snapshot vs. SWA combine the *identical* checkpoints, isolating function-space vs. parameter-space averaging.
+Clean-by-construction contrasts: the first DeepEns member is bit-identical to the first cyclic snapshot (verified in every setting), and Snapshot vs. SWA combine the *identical* checkpoints, so their contrast measures function-space vs. parameter-space averaging of the same weights.
 
 ## 3. Settings and Key Results (10 seeds each, Holm-adjusted exact permutation tests)
 
@@ -33,13 +37,13 @@ Clean-by-construction contrasts: the first DeepEns member is bit-identical to th
 | Fashion-MNIST, B=30, k=3 | 0.3795 | **0.3041** | 0.3124 | 0.3265 | low budget: gaps compress; after TS the ensembles are statistically indistinguishable |
 | Fashion-MNIST, B=120, k=3 | 0.6672 | **0.3355** | 0.4389 | 0.5120 | budget-split advantage **grows** with budget |
 | Fashion-MNIST, B=60, k=5 | 0.5265 | **0.2974** | 0.3230 | 0.3592 | all strategies improve with k |
-| **MNIST, B=60, k=3** (reversed) | 0.0724 | **0.0565** | 0.0709 | 0.0741 | boundary condition: only DeepEns separates from Single (p=0.0098 vs p=0.41) |
+| **MNIST, B=60, k=3** (reversed) | 0.0724 | **0.0565** | 0.0709 | 0.0741 | boundary condition: only DeepEns separates from Single (p=0.0098 vs p=0.41); DeepEns beats SWA directly too (−0.0176, p=0.0020) |
 | **CIFAR-10, B=60, k=3, small CNN** (post-hoc) | ~2.0 | **~0.69** | ~0.90 | ~1.08 | full replication with much larger margins; see `results/cifar/` |
 
 (The CIFAR row's exact values, CIs and tests are in `results/cifar/analysis_cifar.json`; the manuscript's Table 4 reports them in full.)
 
-- **OOD detection (MSP AUROC):** DeepEns improves detection on every one of the eleven setting→probe combinations (per-probe Holm-adjusted P ≤ 0.031; e.g. core Fashion-MNIST→MNIST +0.097, →KMNIST +0.110; CIFAR-100 +0.069); Snapshot on 9/11; SWA's effects are smaller and task-dependent (−0.016 to +0.025: significantly positive on 5 combinations incl. CIFAR-100 +0.025, significantly negative on one at B=120, null elsewhere). Full table: paper Supplementary Table S4 / `research-docs/ood-ts-statistics-v4.md`.
-- **Temperature scaling** (fitted per condition on validation): repairs much of every condition's miscalibration (Single 0.527→0.333) but leaves DeepEns significantly best at the core budget and above; it shifts OOD AUROC by at most +0.012 on the digit tasks and up to +0.026 on CIFAR-10 (TS is not rank-preserving across samples in general); at B=30 it largely equalises the ensemble strategies.
+- **OOD detection (MSP AUROC):** DeepEns improves detection on every one of the eleven setting→probe combinations (per-probe Holm-adjusted P ≤ 0.032; e.g. core Fashion-MNIST→MNIST +0.097, →KMNIST +0.110; CIFAR-100 +0.069); Snapshot on 9/11; SWA's effects are smaller and task-dependent (−0.016 to +0.025: significantly positive on 5 combinations incl. CIFAR-100 +0.025, significantly negative on one at B=120, null elsewhere). Full table: paper Supplementary Table S4 / `research-docs/ood-ts-statistics-v4.md`.
+- **Temperature scaling** (fitted per condition on validation): repairs much of every condition's miscalibration (Single 0.527→0.333) but leaves DeepEns significantly best at the core budget and above; it shifts OOD AUROC by at most +0.012 on the digit tasks and up to +0.026 on CIFAR-10 (TS is not rank-preserving across samples in general; adaptive TS has even been used to improve OOD detection — Krumpl et al., WACV 2024); at B=30 it largely equalises the ensemble strategies.
 - **Mechanism:** budget-split members are better calibrated (member NLL 0.338 vs 0.404) *and* more diverse (JSD 0.0150 vs 0.0106) than continued-training snapshots; both replicate on CIFAR-10.
 - **Inference cost is not matched** by design: prediction averaging costs k forward passes per query, Single/SWA cost one (see the paper's Methods §3.1).
 
@@ -48,8 +52,9 @@ Clean-by-construction contrasts: the first DeepEns member is bit-identical to th
 ## 4. Repository Structure
 
 ```
-├── paper/                       # Manuscript PDF (v3, IJMLC format; also on the Release)
 ├── manuscript-source/          # Complete LaTeX source (author-year citations)
+│   ├── main.tex                    # v4.0.0 source (release paper-v4.0.0)
+│   └── main_v4_1.tex               # v4.1.0 source (this revision)
 ├── code/
 │   ├── paths.py                     # repo-root path resolution (no hard-coded paths)
 │   ├── common.py / common_cifar.py   # shared training + metrics + temperature scaling
@@ -58,18 +63,23 @@ Clean-by-construction contrasts: the first DeepEns member is bit-identical to th
 │   ├── run_experiments_v2.py        # v2 extensions: budgets/sizes/direction/TS/KMNIST
 │   ├── run_experiments_cifar.py     # v3 cross-architecture extension (checkpointed, sharded)
 │   ├── analyze_results.py / analyze_v2.py / analyze_cifar.py
-│   ├── make_figures.py / make_figures_v2.py / make_figures_cifar.py
+│   ├── reanalysis_v4.py / verify_v4_numbers.py / diagnose_seed8.py
+│   ├── verify_v41_stage{1,2,3}.py   # v4.1 independent recomputation audit
 │   └── requirements.txt
 ├── results/
 │   ├── experiment.jsonl             # v1 raw per-seed records (core setting)
 │   ├── v2/                          # v2 raw per-seed records × 5 settings + analysis
 │   ├── cifar/                       # v3 CIFAR raw per-seed records + analysis
+│   ├── v4/                          # v4 re-analysis + seed-8 diagnosis
 │   └── analysis.json, contrasts.csv, ...
 ├── figures/                     # 5 main + 4 supplementary figures (PDF + PNG)
 ├── source-data/                 # Per-panel CSV source data for every figure
 └── research-docs/               # Design, audits, literature reviews, experiment plans,
-                                 # revision logs, claim–evidence maps, submission checklist
+                                 # revision logs, claim–evidence maps, submission checklists
 ```
+
+*(Manuscript PDFs for every version are published as release assets, not
+tracked in the repository tree.)*
 
 ## 5. Reproducing (clean clone)
 
@@ -91,6 +101,8 @@ python code/run_experiments_cifar.py --budget 60 --k 3 --seeds 0:10 \
     --out results/cifar/experiment_cifar_B60_k3.jsonl
 python code/analyze_v2.py && python code/analyze_cifar.py
 python code/make_figures.py && python code/make_figures_v2.py && python code/make_figures_cifar.py
+# v4.1 audit: independent recomputation of every manuscript number from the raw records
+python code/verify_v41_stage1.py && python code/verify_v41_stage2.py && python code/verify_v41_stage3.py
 ```
 
 All scripts resolve paths relative to the repository root (override with the
@@ -100,12 +112,13 @@ All scripts resolve paths relative to the repository root (override with the
 - v2 pipeline reproduces v1 bit-for-bit (seed-0 re-run: 28/28 recorded metrics exact match).
 - Clean-environment gate (fresh venv, fresh data download, fresh directory): seed-0 re-run matched **all 110 recorded metric values bit-for-bit**.
 - CIFAR pipeline: interrupted-and-resumed training is bitwise identical to one-shot training; shared-first-member bit-identity verified.
+- v4.1 audit: 232/241 automated number checks reproduce the manuscript exactly from the raw records; the 9 exceptions are documented dispositions (one corrected table row, two re-scoped claims, and reference notes) — see `research-docs/number-verification-v4.1.md`.
 
 ## 6. Research-Integrity Notes
 
 - **No fabricated results.** Every number traces to committed raw JSONL records; figures regenerate from committed per-panel CSVs. The CIFAR experiment's hypotheses and analysis plan were fixed in writing before any test-set evaluation and are labelled post-hoc in the paper.
 - **Statistical rigor.** Seed is the unit of replication; paired contrasts; exact sign-flip permutation tests; Holm correction per pre-specified family; extensions labelled as non-preregistered; the B=30 secondary-metric and TS exceptions are reported, not hidden.
-- **AI involvement.** Code, analysis and drafting were produced with AI assistance (Qinyan Nature Skills workflow) under the author's direction; all numbers were verified against the released records. See the manuscript's Declarations.
+- **AI involvement.** Code, analysis, drafting and revisions were produced with AI assistance (Qinyan Nature Skills workflow) under the author's direction; all numbers were verified against the released records. See the manuscript's Declarations.
 - **Honest scope.** Conclusions are bounded to the studied regime; the saturated-task boundary condition (MNIST) is reported prominently, not hidden.
 
 ## 7. Citation
@@ -122,6 +135,7 @@ All scripts resolve paths relative to the repository root (override with the
 
 ## 8. Version History
 
+- **v4.1.0 (14 Oct 2026):** submission-preparation audit and targeted revision. One table display error corrected (Table 1 KMNIST-probe s.d. row, inherited from v2); abstract and contribution claims re-scoped to match the statistical evidence (the four-way ordering does not hold on the MNIST direction, where SWA is nominally below Single; the CIFAR ECE advantage of DeepEns over Snapshot reported as unresolved at n=10); the "by adjacency" inference on MNIST replaced by a direct DeepEns−SWA contrast (−0.0176, p=0.0020); causal language tightened in four passages; positioning paragraph made internally consistent and re-dated (literature re-check through 14 Oct 2026) with three new verified references (Brigato & Iocchi 2021; Ramé et al. 2022 DiWA; Krumpl et al. 2024 ATS); abstract trimmed to the journal's 150–250-word limit (248); full independent number recomputation (232/241 checks; dispositions documented); research-docs: revision log, claim–evidence matrix, literature positioning, number-verification report, final submission checklist. Manuscript PDFs moved out of the repository tree into release assets.
 - **v4.0.0 (13 Oct 2026):** final pre-submission audit and scope corrections. OOD claims rewritten from the categorical "only prediction averaging helps" to the comparative, heterogeneity-reporting form backed by a fully defined post-hoc multiplicity framework (per-probe Holm families + setting-level + global sensitivity; new Supplementary Table S4 with all eleven setting→probe combinations); temperature-scaling OOD claim corrected (digit tasks ≤ +0.012; CIFAR-10 up to +0.026; "ranking-invariant" theory statement removed); CIFAR DeepEns−Snapshot ECE contrast reported as directionally consistent but statistically unresolved (P=0.082); anomalous CIFAR replicate diagnosed (one fresh restart collapsed to uniform predictions in epoch 1 — deterministic re-run) and retained under the no-exclusion rule with leave-one-out sensitivity; `download_data_cifar.py` integrity-check float32 accumulation bug fixed (stored data verified correct in float64); v4 research documents (audit, claim–evidence matrix, OOD/TS statistics report, anomalous-seed report, revision log, submission checklist) and `results/v4/` independent re-analysis released.
 - **v3.0.0 (12 Oct 2026):** cross-architecture replication on CIFAR-10 (small CNN, post-hoc-labelled); scope-corrected title and claims (NLL/ECE ordering; B=30 secondary-metric and TS exceptions reported); four-dimension cost accounting (training vs wall-clock vs inference vs deployment); 2024–2025 literature re-check with three new verified references; path-independent code (clean-clone reproduction gate: 110/110 bit-identical); torchvision-free data pipeline.
 - **v2.0.0 (11 Oct 2026):** IJMLC-format rewrite; adds budget sweep (30/120), ensemble size k=5, reversed MNIST direction, KMNIST second OOD probe, per-condition temperature scaling; author-year citations; Declarations incl. AI-use disclosure.

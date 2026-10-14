@@ -15,7 +15,7 @@ NLL 0.7070 ± 0.0783).
 | DeepEns ECE (15 bins) | 0.2095 | 0.0209 ± 0.0051 |
 | DeepEns accuracy | 0.7567 | 0.7758 ± 0.0044 |
 | Member mean NLL | 1.4107 | 1.0258 ± 0.0304 |
-| Member mean accuracy | 0.5146 | 0.7257 ± 0.0042 |
+| Member mean accuracy | 0.5146 | 0.7249 ± 0.0042 (corrected in v4.1 audit; previously written 0.7257) |
 | Disagreement JSD | 0.3288 | 0.1350 ± 0.0058 |
 | DeepEns−Snapshot NLL sign | reversed (0.929 vs 0.882) | negative in all nine |
 
