@@ -31,4 +31,4 @@ Dalian University of Technology
 
 ---
 
-*Notes for the author (not part of the letter): update the funding sentence, ORCID and submission-system fields per the final checklist before submission; verify the funding declaration matches your actual situation. The letter intentionally makes no claim of breakthrough novelty and does not reference acceptance likelihood.*
+*Notes for the author (not part of the letter): the funding declaration is confirmed (no funding, 14 Oct 2026) and the canonical repository URL now appears in the manuscript; remaining before submission — enter Author Contributions and Competing Interests in the journal submission system, and optionally add ORCID. The letter intentionally makes no claim of breakthrough novelty and does not reference acceptance likelihood.*

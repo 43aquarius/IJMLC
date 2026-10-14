@@ -54,3 +54,19 @@ reported numbers; this pass touched no reported number.
 - Training budget vs inference cost distinction intact (§3.1, §6.1). ✓
 - Pre-registered vs post-hoc vs exploratory labels intact (§3.5,
   throughout). ✓
+
+## Addendum — publication authorisation (14 October 2026)
+
+Following the author's confirmation (no funding to declare; repository
+renamed to `deep-ensembles-fixed-budget`; token verified; publication
+authorised), these final actions completed the v4.1.1 release. No
+reported number, statistic or figure was touched.
+
+| # | Item | Action | Verification |
+|---|---|---|---|
+| A1 | Repository URLs in the manuscript | Both occurrences of `github.com/43aquarius/IJMLC` (Methods §3.6 data-release sentence, p. 7; Code availability, p. 16) updated to the canonical `github.com/43aquarius/deep-ensembles-fixed-budget`; PDF recompiled (tectonic 0.15.0) | Source diff = 2 lines, URL strings only; character-multiset comparison of previous vs recompiled PDF text identical after URL substitution; VLM page check (pp. 7, 16) PASS |
+| A2 | Compile health after the URL update | 25 pp. A4 (unchanged); 0 errors; 0 unresolved references; all six declaration paragraphs, the `paper-v4.1.1` release tag and all required strings present; no v4.1.0 leftovers | `verify_v411_pdf.py` re-run on the recompiled PDF |
+| A3 | Known typeset change | One mild underfull line (badness 4981) in the Code-availability paragraph, caused by the longer canonical URL — recorded and accepted (no overfull, no overlap, no content impact) | tectonic log; VLM p. 16 PASS |
+| A4 | Funding statement | Author confirmed **no funding** (14 Oct 2026) — the Springer standard no-grant wording stands as written; checklist A6 closed | author confirmation |
+| A5 | Repository reorganisation | Per the standing policy (supporting materials in the tree; the paper itself only in releases), `manuscript-source/` removed from the tree; the exact LaTeX source + the 9 figure PDFs it compiles against shipped as a source-archive release asset | asset SHA-256 recorded in release notes and verification records |
+| A6 | Publication | v4.1.1 branch fast-forward merged to `main`, tag `paper-v4.1.1` pushed, release published with the PDF and the source archive as assets; previous tags and releases untouched | GitHub API check + download-back SHA-256 comparison |

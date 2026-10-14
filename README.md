@@ -1,14 +1,15 @@
 # Deep Ensembles vs. Snapshot Ensembles and Weight Averaging for Calibrated Uncertainty under Fixed Training Budgets
 
-Research artifacts for the manuscript ***"Deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty under fixed training budgets"*** (v4.1, prepared for the *International Journal of Machine Learning and Cybernetics*).
+Research artifacts for the manuscript ***"Deep ensembles outperform snapshot ensembles and weight averaging for calibrated uncertainty under fixed training budgets"*** (v4.1.1, prepared for the *International Journal of Machine Learning and Cybernetics*).
 
 **Author:** Chang Tan (Dalian University of Technology) — corresponding: aquars43@foxmail.com
 
 > **One-sentence summary.** Under an identical training budget, splitting the budget across independently restarted networks (budget-split deep ensembles) yields better-calibrated uncertainty than extending single-model training, cycling the learning rate to harvest snapshots, or averaging the weights of those snapshots — the four-way ordering holds on test NLL across budgets, ensemble sizes and (post-hoc) a convolutional architecture on CIFAR-10, survives per-condition temperature scaling at the core budget and above, and carries to out-of-distribution detection, where prediction averaging gives the largest and most consistent gains while weight averaging's smaller effects are task-dependent (on the near-saturated MNIST task only the budget-split ensemble separates from the single network; the CIFAR DeepEns–Snapshot advantage in calibration error is directionally consistent but not statistically resolved at n=10).
 
-> **Manuscript PDFs** are published as release assets only (see the
-> [releases page](https://github.com/43aquarius/IJMLC/releases)); this
-> repository carries the source, data, code and research trail.
+> **The manuscript itself — compiled PDF and LaTeX source — lives in the
+> [releases](https://github.com/43aquarius/deep-ensembles-fixed-budget/releases)
+> only**; this repository carries the code, data, figures and research
+> trail that support the paper.
 
 ---
 
@@ -52,9 +53,6 @@ Clean-by-construction contrasts: the first DeepEns member is bit-identical to th
 ## 4. Repository Structure
 
 ```
-├── manuscript-source/          # Complete LaTeX source (author-year citations)
-│   ├── main.tex                    # v4.0.0 source (release paper-v4.0.0)
-│   └── main_v4_1.tex               # v4.1.0 source (this revision)
 ├── code/
 │   ├── paths.py                     # repo-root path resolution (no hard-coded paths)
 │   ├── common.py / common_cifar.py   # shared training + metrics + temperature scaling
@@ -78,8 +76,10 @@ Clean-by-construction contrasts: the first DeepEns member is bit-identical to th
                                  # revision logs, claim–evidence maps, submission checklists
 ```
 
-*(Manuscript PDFs for every version are published as release assets, not
-tracked in the repository tree.)*
+*(The manuscript for every version — PDF and LaTeX source — is published as
+release assets, not tracked in the repository tree. Each release carries
+the paper PDF plus a source archive containing the exact LaTeX file and the
+figure PDFs it compiles against.)*
 
 ## 5. Reproducing (clean clone)
 
@@ -129,12 +129,13 @@ All scripts resolve paths relative to the repository root (override with the
   author  = {Tan, Chang},
   journal = {Preprint, prepared for the International Journal of Machine Learning and Cybernetics},
   year    = {2026},
-  url     = {https://github.com/43aquarius/IJMLC}
+  url     = {https://github.com/43aquarius/deep-ensembles-fixed-budget}
 }
 ```
 
 ## 8. Version History
 
+- **v4.1.1 (14 Oct 2026):** final pre-submission pass — no experimental or numerical changes. Declarations retitled to "Statements and Declarations" and reorganised into the six standard paragraphs (Funding / Competing interests / Author contributions / Use of large language models / Data availability / Code availability) per the official submission guidelines (accessed 14 Oct 2026); a factual LLM-use paragraph added at the end of Methods §3.6 (Reproducibility); abstract trimmed from 249 to 236 source-level words (all ten required content elements retained, checked programmatically); Supplementary Fig. S3 (SWA-dense comparison) widened from 4.7 to 7.2 inches to clear the crowded x-axis method labels — plotted data, statistics and axis ranges unchanged; cover letter draft added (`research-docs/`). The repository was renamed **IJMLC → deep-ensembles-fixed-budget** and both in-manuscript URLs updated to the canonical location (PDF recompiled and verified: URL-only change; page count and all checks unchanged); the LaTeX source moved from the repository tree into the release asset archive, so the tree now carries supporting materials only.
 - **v4.1.0 (14 Oct 2026):** submission-preparation audit and targeted revision. One table display error corrected (Table 1 KMNIST-probe s.d. row, inherited from v2); abstract and contribution claims re-scoped to match the statistical evidence (the four-way ordering does not hold on the MNIST direction, where SWA is nominally below Single; the CIFAR ECE advantage of DeepEns over Snapshot reported as unresolved at n=10); the "by adjacency" inference on MNIST replaced by a direct DeepEns−SWA contrast (−0.0176, p=0.0020); causal language tightened in four passages; positioning paragraph made internally consistent and re-dated (literature re-check through 14 Oct 2026) with three new verified references (Brigato & Iocchi 2021; Ramé et al. 2022 DiWA; Krumpl et al. 2024 ATS); abstract trimmed to the journal's 150–250-word limit (248); full independent number recomputation (232/241 checks; dispositions documented); research-docs: revision log, claim–evidence matrix, literature positioning, number-verification report, final submission checklist. Manuscript PDFs moved out of the repository tree into release assets.
 - **v4.0.0 (13 Oct 2026):** final pre-submission audit and scope corrections. OOD claims rewritten from the categorical "only prediction averaging helps" to the comparative, heterogeneity-reporting form backed by a fully defined post-hoc multiplicity framework (per-probe Holm families + setting-level + global sensitivity; new Supplementary Table S4 with all eleven setting→probe combinations); temperature-scaling OOD claim corrected (digit tasks ≤ +0.012; CIFAR-10 up to +0.026; "ranking-invariant" theory statement removed); CIFAR DeepEns−Snapshot ECE contrast reported as directionally consistent but statistically unresolved (P=0.082); anomalous CIFAR replicate diagnosed (one fresh restart collapsed to uniform predictions in epoch 1 — deterministic re-run) and retained under the no-exclusion rule with leave-one-out sensitivity; `download_data_cifar.py` integrity-check float32 accumulation bug fixed (stored data verified correct in float64); v4 research documents (audit, claim–evidence matrix, OOD/TS statistics report, anomalous-seed report, revision log, submission checklist) and `results/v4/` independent re-analysis released.
 - **v3.0.0 (12 Oct 2026):** cross-architecture replication on CIFAR-10 (small CNN, post-hoc-labelled); scope-corrected title and claims (NLL/ECE ordering; B=30 secondary-metric and TS exceptions reported); four-dimension cost accounting (training vs wall-clock vs inference vs deployment); 2024–2025 literature re-check with three new verified references; path-independent code (clean-clone reproduction gate: 110/110 bit-identical); torchvision-free data pipeline.
